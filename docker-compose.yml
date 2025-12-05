@@ -1,0 +1,24 @@
+services:
+  # Base de datos PostgreSQL 16
+  postgres:
+    image: postgres:16-alpine
+    container_name: saas_pos_db
+    restart: always
+    environment:
+      POSTGRES_DB: saas_pos
+      POSTGRES_USER: saas_admin
+      POSTGRES_PASSWORD: saas_password_secret
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Interfaz web para ver la BD (opcional, pero útil para juniors)
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8080:8080"
+
+volumes:
+  postgres_data:
