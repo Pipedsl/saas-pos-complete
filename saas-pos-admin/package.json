@@ -22,7 +22,7 @@
   },
   "private": true,
   "dependencies": {
-    "@angular/animations": "^20.3.13",
+    "@angular/animations": "^20.3.15",
     "@angular/common": "^20.3.13",
     "@angular/compiler": "^20.3.13",
     "@angular/core": "^20.3.13",
@@ -33,7 +33,7 @@
     "@tailwindcss/postcss": "^4.1.17",
     "@zxing/browser": "^0.1.5",
     "@zxing/library": "^0.21.3",
-    "@zxing/ngx-scanner": "^20.3.13",
+    "@zxing/ngx-scanner": "^20.0.0",
     "postcss": "^8.5.6",
     "primeicons": "^7.0.0",
     "primeng": "^20.3.0",
