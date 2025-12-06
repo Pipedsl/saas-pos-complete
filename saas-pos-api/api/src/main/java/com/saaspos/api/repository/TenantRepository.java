@@ -23,7 +23,8 @@ public interface TenantRepository extends JpaRepository<Tenant, UUID> {
             t.isActive,
             t.createdAt,
             t.demoExpiresAt,
-            'System'
+            'System',
+            t.subscriptionEndDate
         )
         FROM Tenant t
         JOIN t.plan p

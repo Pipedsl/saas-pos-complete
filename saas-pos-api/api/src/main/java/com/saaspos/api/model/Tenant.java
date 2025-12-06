@@ -46,4 +46,13 @@ public class Tenant {
 
     @Column(name = "demo_expires_at")
     private LocalDateTime demoExpiresAt;
+
+    @Column(name = "subscription_end_date")
+    private java.time.LocalDateTime subscriptionEndDate;
+
+    @Column(name = "plan_status")
+    private String planStatus = "ACTIVE";
+
+    @Column(name = "max_cashiers_extra")
+    private Integer maxCashiersExtra = 0;
 }

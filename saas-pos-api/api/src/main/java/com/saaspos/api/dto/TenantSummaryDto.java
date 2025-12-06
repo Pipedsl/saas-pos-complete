@@ -19,4 +19,6 @@ public class TenantSummaryDto {
 
     // Opcional: Para saber quién lo vendió (lo sacaremos del DemoLink)
     private String referredByAgent;
+    private LocalDateTime subscriptionEndDate;
+
 }

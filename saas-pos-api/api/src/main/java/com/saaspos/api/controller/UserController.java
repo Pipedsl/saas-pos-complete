@@ -51,29 +51,44 @@ public class UserController {
     public ResponseEntity<?> createUser(@RequestBody CreateUserDto dto) {
         User currentUser = getCurrentUser();
 
+        // 1. Logs de depuración (útil para ver qué pasa)
+        System.out.println("Creando usuario con rol: " + dto.getRole());
+        System.out.println("Solicitante: " + currentUser.getRole());
+
+        // 2. Validación General (Solo Admins pueden crear gente)
         if (!currentUser.getRole().contains("ADMIN")) {
             return ResponseEntity.status(403).body("No tienes permisos para crear usuarios.");
         }
+
+        // --- NUEVA VALIDACIÓN DE SEGURIDAD (VENDOR) ---
+        // Si intentan crear un VENDOR, verificamos que quien lo pide sea SUPER_ADMIN
+        if ("VENDOR".equals(dto.getRole()) && !"SUPER_ADMIN".equals(currentUser.getRole())) {
+            return ResponseEntity.status(403).body("Solo el Super Admin puede crear Vendedores SaaS (Partners).");
+        }
+        // ----------------------------------------------
 
         if (userRepository.existsByEmail(dto.getEmail())) {
             return ResponseEntity.badRequest().body("El email ya está registrado.");
         }
 
+        // 3. Crear Entidad
         User newUser = new User();
         newUser.setFullName(dto.getFullName());
         newUser.setEmail(dto.getEmail());
         newUser.setPassword(passwordEncoder.encode(dto.getPassword()));
+
+        // Asignar rol (o default)
         String roleToAssign = dto.getRole();
         if (roleToAssign == null || roleToAssign.trim().isEmpty()) {
             roleToAssign = "CASHIER";
         }
         newUser.setRole(roleToAssign);
+
         newUser.setTenant(currentUser.getTenant());
         newUser.setActive(true);
 
         User savedUser = userRepository.save(newUser);
 
-        // Devolver DTO limpio
         return ResponseEntity.ok(mapToDto(savedUser));
     }
 

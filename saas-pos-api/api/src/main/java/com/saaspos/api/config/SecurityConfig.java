@@ -1,6 +1,7 @@
 package com.saaspos.api.config;
 
 import com.saaspos.api.service.CustomUserDetailsService;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,7 +15,7 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter; // IMPORTANTE
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -25,10 +26,13 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final CustomUserDetailsService userDetailsService;
-    private final JwtAuthenticationFilter jwtAuthFilter; // <--- NUEVO: Inyectamos el filtro
+    // 1. Aquí recibimos la variable desde application.properties (o variables de entorno)
+    @Value("${app.cors.allowed-origins}")
+    private String allowedOrigins;
 
-    // Constructor actualizado
+    private final CustomUserDetailsService userDetailsService;
+    private final JwtAuthenticationFilter jwtAuthFilter;
+
     public SecurityConfig(CustomUserDetailsService userDetailsService, JwtAuthenticationFilter jwtAuthFilter) {
         this.userDetailsService = userDetailsService;
         this.jwtAuthFilter = jwtAuthFilter;
@@ -38,20 +42,17 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
-
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/**").permitAll()
-                        // Permitir Swagger
-                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**","/api/public/**", "/swagger-ui.html").permitAll()
+                        .requestMatchers("/api/public/**").permitAll() // Registro público
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         .anyRequest().authenticated()
                 )
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
                 .authenticationProvider(authenticationProvider())
-                // AGREGAMOS EL FILTRO AQUÍ:
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
@@ -61,12 +62,14 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(List.of("http://localhost:4200", "http://localhost:8081"));
+        // 2. USO DE LA VARIABLE DINÁMICA
+        // Tomamos el string (ej: "http://localhost:4200,https://mi-app.railway.app")
+        // Lo cortamos por la coma y creamos la lista.
+        // Esto permite que funcione en local Y en producción sin tocar el código Java.
+        configuration.setAllowedOrigins(List.of(allowedOrigins.split(",")));
 
         configuration.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
-
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
