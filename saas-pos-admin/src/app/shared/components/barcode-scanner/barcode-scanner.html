@@ -1,0 +1,20 @@
+<div
+    class="scanner-container bg-black rounded-lg overflow-hidden relative h-[300px] w-full flex items-center justify-center">
+
+    <div *ngIf="!hasDevices" class="text-white p-4 text-center absolute z-10">
+        <i class="pi pi-camera-slash text-2xl mb-2"></i>
+        <p>Buscando cámara...</p>
+        <p class="text-xs text-gray-400">Asegúrate de dar permisos</p>
+    </div>
+
+    <zxing-scanner [formats]="allowedFormats" (scanSuccess)="onCodeResult($event)"
+        (camerasFound)="onCamerasFound($event)" (permissionResponse)="onHasPermission($event)" [tryHarder]="true"
+        class="w-full h-full object-cover">
+    </zxing-scanner>
+
+    <div class="absolute inset-0 flex items-center justify-center pointer-events-none z-20">
+        <div class="w-3/4 h-0.5 bg-red-500 shadow-[0_0_10px_rgba(255,0,0,0.8)]"></div>
+    </div>
+</div>
+
+<p class="text-center text-gray-400 text-xs mt-2">Apunta la cámara al código de barras</p>

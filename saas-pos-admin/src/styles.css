@@ -1,0 +1,11 @@
+@import "tailwindcss";
+@import "tailwindcss-primeui";
+@import "primeicons/primeicons.css";
+@custom-variant dark (&:where(.my-app-dark, .my-app-dark *));
+
+body {
+    background-color: #0f172a; /* Coincide con darkbg */
+    color: #e2e8f0; /* Texto claro */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+

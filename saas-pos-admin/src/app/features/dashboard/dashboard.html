@@ -1,0 +1,93 @@
+<div class="p-4 lg:p-6 h-full overflow-y-auto">
+
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl lg:text-3xl text-white font-bold">Resumen del Día</h2>
+        <span class="text-gray-400 text-sm">{{ stats.totalTransactionsToday }} transacciones hoy</span>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+
+        <div class="bg-cardbg p-6 rounded-xl border border-gray-700 shadow-lg relative overflow-hidden group">
+            <div
+                class="absolute right-0 top-0 w-24 h-24 bg-emerald-500/10 rounded-bl-full group-hover:bg-emerald-500/20 transition-all">
+            </div>
+
+            <h3 class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Ventas Hoy</h3>
+            <p class="text-4xl font-black text-emerald-400">
+                {{ stats.totalSalesToday | currency:'CLP':'symbol-narrow':'1.0-0' }}
+            </p>
+            <i class="pi pi-dollar absolute right-4 top-4 text-2xl text-emerald-500/50"></i>
+        </div>
+
+        <div class="bg-cardbg p-6 rounded-xl border border-gray-700 shadow-lg relative overflow-hidden group">
+            <div
+                class="absolute right-0 top-0 w-24 h-24 bg-yellow-500/10 rounded-bl-full group-hover:bg-yellow-500/20 transition-all">
+            </div>
+
+            <h3 class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Utilidad Neta (Aprox)</h3>
+            <p class="text-4xl font-black text-yellow-400">
+                {{ stats.totalProfitToday | currency:'CLP':'symbol-narrow':'1.0-0' }}
+            </p>
+            <i class="pi pi-chart-line absolute right-4 top-4 text-2xl text-yellow-500/50"></i>
+
+            <p class="text-xs text-gray-500 mt-2" *ngIf="stats.totalSalesToday > 0">
+                Margen: {{ (stats.totalProfitToday / (stats.totalSalesToday / 1.19)) | percent:'1.0-1' }}
+            </p>
+        </div>
+
+        <div (click)="openLowStockDetails()"
+            class="bg-cardbg p-6 rounded-xl border border-gray-700 shadow-lg relative overflow-hidden group cursor-pointer hover:border-red-500/50 transition-colors">
+            <div
+                class="absolute right-0 top-0 w-24 h-24 bg-red-500/10 rounded-bl-full group-hover:bg-red-500/20 transition-all">
+            </div>
+
+            <h3 class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Stock Crítico</h3>
+            <div class="flex items-baseline gap-2">
+                <p class="text-4xl font-black" [ngClass]="stats.lowStockCount > 0 ? 'text-red-400' : 'text-gray-200'">
+                    {{ stats.lowStockCount }}
+                </p>
+                <span class="text-xs text-gray-500">productos</span>
+            </div>
+            <i class="pi pi-exclamation-triangle absolute right-4 top-4 text-2xl text-red-500/50"></i>
+        </div>
+
+        <div class="bg-cardbg p-6 rounded-xl border border-gray-700 shadow-lg relative overflow-hidden group">
+            <div
+                class="absolute right-0 top-0 w-24 h-24 bg-blue-500/10 rounded-bl-full group-hover:bg-blue-500/20 transition-all">
+            </div>
+
+            <h3 class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Tickets Emitidos</h3>
+            <p class="text-4xl font-black text-blue-400">
+                #{{ stats.totalTransactionsToday }}
+            </p>
+            <i class="pi pi-receipt absolute right-4 top-4 text-2xl text-blue-500/50"></i>
+        </div>
+
+    </div>
+
+    <div class="mt-8 bg-cardbg rounded-xl border border-gray-800 p-8 text-center text-gray-600 border-dashed">
+        <i class="pi pi-chart-bar text-4xl mb-2"></i>
+        <p>Próximamente: Gráficos de ventas mensuales</p>
+    </div>
+
+</div>
+
+<p-dialog header="Productos con Stock Crítico" [(visible)]="showLowStockDialog" [modal]="true"
+    [style]="{width: '50vw'}">
+    <p-table [value]="lowStockProducts" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+            <tr>
+                <th>Producto</th>
+                <th>Stock Actual</th>
+                <th>Mínimo</th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-p>
+            <tr>
+                <td>{{ p.name }}</td>
+                <td class="font-bold text-red-500">{{ p.stockCurrent }}</td>
+                <td>{{ p.stockMin }}</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</p-dialog>

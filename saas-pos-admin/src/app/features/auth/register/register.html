@@ -1,0 +1,61 @@
+<div class="min-h-screen flex items-center justify-center bg-darkbg p-4 relative overflow-hidden">
+
+    <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+        <div class="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] bg-primary/10 rounded-full blur-3xl"></div>
+        <div class="absolute bottom-[-20%] left-[-10%] w-[500px] h-[500px] bg-secondary/10 rounded-full blur-3xl"></div>
+    </div>
+
+    <p-card styleClass="bg-cardbg border border-gray-800 shadow-2xl w-full max-w-md relative z-10">
+
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-white mb-2">Bienvenido a SaaS<span class="text-primary">POS</span></h1>
+            <p class="text-gray-400">Configura tu tienda en segundos 🚀</p>
+        </div>
+
+        <div *ngIf="errorMsg"
+            class="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded text-red-200 text-sm text-center">
+            {{ errorMsg }}
+        </div>
+
+        <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-5">
+
+            <div class="flex flex-col gap-2">
+                <label class="text-gray-300 text-sm">Nombre de tu Negocio</label>
+                <input pInputText formControlName="companyName" placeholder="Ej: Minimarket Don Pepe"
+                    class="w-full bg-gray-900 border-gray-700 text-white" />
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <label class="text-gray-300 text-sm">Tu Nombre Completo</label>
+                <input pInputText formControlName="fullName" placeholder="Ej: Juan Pérez"
+                    class="w-full bg-gray-900 border-gray-700 text-white" />
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <label class="text-gray-300 text-sm">Correo Electrónico</label>
+                <input pInputText formControlName="email" type="email" placeholder="juan@gmail.com"
+                    class="w-full bg-gray-900 border-gray-700 text-white" />
+            </div>
+
+            <div class="flex flex-col gap-2">
+                <label class="text-gray-300 text-sm">Contraseña</label>
+                <p-password formControlName="password" [toggleMask]="true" [feedback]="true"
+                    placeholder="Crea una clave segura" styleClass="w-full"
+                    inputStyleClass="w-full bg-gray-900 border-gray-700 text-white">
+                </p-password>
+            </div>
+
+            <button pButton type="submit" label="Crear mi Tienda" [loading]="loading"
+                class="w-full p-button-success font-bold py-3 mt-2 text-lg shadow-lg shadow-green-500/20"
+                [disabled]="registerForm.invalid || !token">
+            </button>
+
+        </form>
+
+        <div class="mt-6 text-center text-sm text-gray-500">
+            ¿Ya tienes cuenta? <a routerLink="/login" class="text-primary hover:underline cursor-pointer">Inicia
+                Sesión</a>
+        </div>
+
+    </p-card>
+</div>

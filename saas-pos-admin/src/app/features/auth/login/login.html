@@ -1,0 +1,35 @@
+<div class="min-h-screen flex items-center justify-center bg-darkbg p-4">
+    <div class="w-full max-w-md">
+        <p-card styleClass="bg-cardbg shadow-xl border-none">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-primary mb-2">SaaS POS</h2>
+                <p class="text-gray-400">Ingresa a tu cuenta</p>
+            </div>
+
+            <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
+
+                <div class="flex flex-col gap-2">
+                    <label class="text-gray-300 text-sm">Correo Electrónico</label>
+                    <input pInputText formControlName="email" class="w-full bg-gray-900 border-gray-700 text-white"
+                        placeholder="ej: admin@saaspos.com" />
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <label class="text-gray-300 text-sm">Contraseña</label>
+                    <p-password formControlName="password" [feedback]="false" [toggleMask]="true" styleClass="w-full"
+                        inputStyleClass="w-full bg-gray-900 border-gray-700 text-white"
+                        placeholder="••••••••"></p-password>
+                </div>
+
+                <div *ngIf="errorMsg"
+                    class="p-3 rounded bg-red-900/50 border border-red-500 text-red-200 text-sm text-center">
+                    {{ errorMsg }}
+                </div>
+
+                <p-button label="Ingresar" type="submit" [loading]="loading"
+                    styleClass="w-full p-button-primary"></p-button>
+
+            </form>
+        </p-card>
+    </div>
+</div>

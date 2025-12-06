@@ -1,0 +1,235 @@
+<div class="p-4 lg:p-6 flex justify-center min-h-screen overflow-y-auto overflow-x-hidden w-full">
+
+    <p-card header="Nuevo Producto" styleClass="bg-cardbg border-none shadow-lg w-full max-w-6xl">
+
+        <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+            <div class="col-span-1 lg:col-span-7 flex flex-col gap-4 w-full min-w-0">
+
+                <div class="flex flex-col gap-2 w-full">
+                    <label class="text-gray-300">SKU</label>
+                    <p-autocomplete formControlName="sku" [suggestions]="suggestedProducts"
+                        (completeMethod)="filterSkus($event)" (onSelect)="onSkuSelect($event)" [optionLabel]="'sku'"
+                        field="sku" [delay]="0" [minLength]="1" (keydown.enter)="$event.preventDefault()"
+                        placeholder="Ej: PROD-001" styleClass="w-full"
+                        inputStyleClass="w-full bg-gray-900 border-gray-700 text-white focus:border-primary">
+                        <ng-template let-prod pTemplate="item">
+                            <div class="flex justify-between gap-4 w-full">
+                                <span class="font-mono text-primary font-bold">{{ prod.sku }}</span>
+                                <span class="text-gray-400 text-sm truncate max-w-[150px]">{{ prod.name }}</span>
+                            </div>
+                        </ng-template>
+                    </p-autocomplete>
+                    <button pButton type="button" icon="pi pi-camera" (click)="showScanner = true"
+                        class="p-button-outlined p-button-secondary shrink-0" pTooltip="Escanear Código"></button>
+                </div>
+                <p-dialog header="Escanear Código" [(visible)]="showScanner" [modal]="true"
+                    [style]="{width: '90%', maxWidth: '400px'}" [closable]="true" (onHide)="showScanner = false">
+                    <div *ngIf="showScanner"> <app-barcode-scanner
+                            (scanSuccess)="handleScan($event)"></app-barcode-scanner>
+                    </div>
+                </p-dialog>
+
+                <div class="flex flex-col gap-2 w-full">
+                    <label class="text-gray-300">Nombre</label>
+                    <input pInputText formControlName="name" class="w-full bg-gray-900 border-gray-700 text-white" />
+                </div>
+
+                <div class="flex flex-col gap-2 bg-gray-900/50 p-3 rounded border border-gray-800 w-full">
+                    <label class="text-gray-400 text-sm mb-1">Tipo de Venta</label>
+                    <div class="flex flex-wrap gap-4">
+                        <div *ngFor="let opt of unitOptions" class="flex align-items-center">
+                            <input type="radio" [value]="opt.value" formControlName="measurementUnit"
+                                class="accent-primary w-4 h-4">
+                            <label class="ml-2 text-gray-300 text-sm">{{ opt.label }}</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                    <div class="flex flex-col gap-2 w-full">
+                        <label class="text-gray-300">Categoría</label>
+                        <div class="flex gap-2 w-full">
+                            <p-autocomplete formControlName="selectedCategory" [suggestions]="filteredCategories"
+                                (completeMethod)="filterCategories($event)" [dropdown]="true" optionLabel="name"
+                                [forceSelection]="true" placeholder="Buscar..." styleClass="w-full"
+                                inputStyleClass="w-full bg-gray-900 border-gray-700 text-white">
+                            </p-autocomplete>
+                            <button pButton type="button" icon="pi pi-plus" (click)="showCategoryDialog = true"
+                                class="p-button-outlined p-button-secondary flex-shrink-0"></button>
+                        </div>
+                    </div>
+
+                    <div class="flex flex-col gap-2 w-full">
+                        <label class="text-gray-300">Proveedor</label>
+                        <div class="flex gap-2 w-full">
+                            <p-autocomplete formControlName="selectedSupplier" [suggestions]="filteredSuppliers"
+                                (completeMethod)="filterSuppliers($event)" [dropdown]="true" optionLabel="name"
+                                [forceSelection]="true" placeholder="Buscar..." styleClass="w-full"
+                                inputStyleClass="w-full bg-gray-900 border-gray-700 text-white">
+                            </p-autocomplete>
+                            <button pButton type="button" icon="pi pi-plus" (click)="showSupplierDialog = true"
+                                class="p-button-outlined p-button-secondary flex-shrink-0"></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-2 w-full">
+                    <label class="text-gray-300">Stock Inicial</label>
+                    <p-inputNumber formControlName="stockCurrent" [showButtons]="true" mode="decimal"
+                        [minFractionDigits]="0" [maxFractionDigits]="3" locale="es-CL" styleClass="w-full"
+                        inputStyleClass="bg-gray-900 border-gray-700 text-white w-full">
+                    </p-inputNumber>
+                </div>
+
+                <div class="flex flex-col gap-2 w-full">
+                    <label class="text-gray-300">Descripción</label>
+                    <textarea pTextarea formControlName="description" [autoResize]="true" rows="3"
+                        class="w-full bg-gray-900 border-gray-700 text-white box-border"></textarea>
+                </div>
+
+                <div class="mt-2 pt-4 border-t border-gray-800 w-full">
+                    <div class="flex justify-between items-center mb-3">
+                        <label class="text-gray-300 font-bold text-sm">Características Adicionales</label>
+                        <button pButton type="button" icon="pi pi-plus" label="Agregar"
+                            class="p-button-outlined p-button-sm" (click)="addAttribute()"></button>
+                    </div>
+
+                    <div *ngIf="attributesList.length > 0"
+                        class="bg-gray-900 rounded p-3 border border-gray-800 space-y-2">
+                        <div *ngFor="let attr of attributesList; let i = index" class="flex gap-2">
+                            <input pInputText [(ngModel)]="attr.key" [ngModelOptions]="{standalone: true}"
+                                placeholder="Ej: Marca"
+                                class="w-1/2 p-inputtext-sm bg-gray-800 text-white border-gray-700" />
+                            <input pInputText [(ngModel)]="attr.value" [ngModelOptions]="{standalone: true}"
+                                placeholder="Ej: Sony"
+                                class="w-1/2 p-inputtext-sm bg-gray-800 text-white border-gray-700" />
+                            <button pButton icon="pi pi-trash" class="p-button-danger p-button-text p-button-sm"
+                                (click)="removeAttribute(i)"></button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-5 w-full">
+                <div class="bg-gray-900 p-5 rounded-xl border border-gray-700 w-full shadow-lg lg:sticky lg:top-4">
+                    <h3 class="text-primary font-bold border-b border-gray-700 pb-3 mb-4 text-lg">Costos y Precios</h3>
+
+                    <div class="space-y-4">
+                        <div class="flex flex-col gap-1">
+                            <label class="text-xs text-gray-400">Costo Neto (Compra)</label>
+                            <p-inputNumber formControlName="costPrice" mode="currency" currency="CLP" locale="es-CL"
+                                (onInput)="calculateSellingPrice()" styleClass="w-full"
+                                inputStyleClass="bg-black text-white border-gray-600 text-lg font-bold w-full">
+                            </p-inputNumber>
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="text-xs text-gray-400">IVA / Impuesto (%)</label>
+                            <p-inputNumber formControlName="taxPercent" suffix="%" (onInput)="calculateSellingPrice()"
+                                [min]="0" [max]="100" styleClass="w-full"
+                                inputStyleClass="bg-black text-white border-gray-600 w-full">
+                            </p-inputNumber>
+                        </div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="text-xs text-gray-400">Margen Ganancia (%)</label>
+                            <p-inputNumber formControlName="marginPercent" suffix="%"
+                                (onInput)="calculateSellingPrice()" styleClass="w-full"
+                                inputStyleClass="bg-black text-green-500 font-bold border-gray-600 w-full">
+                            </p-inputNumber>
+                        </div>
+
+                        <div class="border-t border-gray-700 my-2"></div>
+
+                        <div class="flex flex-col gap-1">
+                            <label class="text-sm text-primary font-bold">Precio Venta Final (con IVA)</label>
+                            <p-inputNumber formControlName="finalPrice" mode="currency" currency="CLP" locale="es-CL"
+                                (onInput)="calculateMargin()" styleClass="w-full"
+                                inputStyleClass="bg-black text-emerald-400 text-2xl font-black border-emerald-500/50 h-14 w-full">
+                            </p-inputNumber>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div
+                class="col-span-1 lg:col-span-12 flex flex-col sm:flex-row justify-end gap-3 mt-6 pt-6 border-t border-gray-800">
+                <button pButton type="button" label="Cancelar"
+                    class="p-button-text p-button-secondary w-full sm:w-auto order-2 sm:order-1"
+                    routerLink="/products"></button>
+                <button pButton type="submit" label="Guardar Producto" [loading]="loading"
+                    class="p-button-primary w-full sm:w-auto font-bold order-1 sm:order-2"></button>
+            </div>
+        </form>
+    </p-card>
+</div>
+
+<p-dialog header="Nueva Categoría" [(visible)]="showCategoryDialog" [modal]="true"
+    [style]="{width: '95vw', maxWidth: '400px'}" styleClass="bg-cardbg text-white border border-gray-800">
+
+    <div class="flex flex-col gap-4 pt-2">
+        <div class="flex flex-col gap-2">
+            <label class="text-sm text-gray-300">Nombre *</label>
+            <input pInputText [(ngModel)]="quickCategory.name" class="bg-gray-900 border-gray-700 text-white w-full"
+                placeholder="Ej: Bebidas" />
+        </div>
+
+        <div class="flex flex-col gap-2">
+            <label class="text-sm text-gray-300">Descripción</label>
+            <textarea pTextarea [(ngModel)]="quickCategory.description" rows="2"
+                class="bg-gray-900 border-gray-700 text-white w-full" placeholder="Opcional..."></textarea>
+        </div>
+
+        <div class="flex justify-end pt-2 border-t border-gray-700 mt-2">
+            <button pButton type="button" label="Guardar" (click)="saveQuickCategory()" icon="pi pi-check"
+                class="p-button-primary"></button>
+        </div>
+    </div>
+</p-dialog>
+
+<p-dialog header="Nuevo Proveedor" [(visible)]="showSupplierDialog" [modal]="true"
+    [style]="{width: '95vw', maxWidth: '500px'}" styleClass="bg-cardbg text-white border border-gray-800">
+
+    <div class="flex flex-col gap-4 pt-2">
+
+        <div class="flex flex-col gap-2">
+            <label class="text-sm text-gray-300">Nombre Fantasía *</label>
+            <input pInputText [(ngModel)]="quickSupplier.name" class="bg-gray-900 border-gray-700 text-white w-full"
+                placeholder="Ej: Distribuidora Juanito" />
+        </div>
+
+        <div class="flex flex-col gap-2">
+            <label class="text-sm text-gray-300">RUT Empresa</label>
+            <input pInputText [(ngModel)]="quickSupplier.rut" class="bg-gray-900 border-gray-700 text-white w-full"
+                placeholder="Ej: 76.123.456-K" />
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="flex flex-col gap-2">
+                <label class="text-sm text-gray-300">Nombre Contacto</label>
+                <input pInputText [(ngModel)]="quickSupplier.contactName"
+                    class="bg-gray-900 border-gray-700 text-white w-full" placeholder="Ej: Juan Pérez" />
+            </div>
+            <div class="flex flex-col gap-2">
+                <label class="text-sm text-gray-300">Teléfono</label>
+                <input pInputText [(ngModel)]="quickSupplier.contactPhone"
+                    class="bg-gray-900 border-gray-700 text-white w-full" placeholder="+569..." />
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-2">
+            <label class="text-sm text-gray-300">Email Contacto</label>
+            <input pInputText [(ngModel)]="quickSupplier.contactEmail"
+                class="bg-gray-900 border-gray-700 text-white w-full" placeholder="contacto@proveedor.cl" />
+        </div>
+
+        <div class="flex justify-end pt-2 border-t border-gray-700 mt-2">
+            <button pButton type="button" label="Guardar" (click)="saveQuickSupplier()" icon="pi pi-check"
+                class="p-button-primary"></button>
+        </div>
+    </div>
+</p-dialog>
+<p-confirmDialog [style]="{width: '450px'}"
+    styleClass="bg-cardbg text-white border border-gray-800 font-sans shadow-2xl"
+    acceptButtonStyleClass="p-button-primary font-bold"
+    rejectButtonStyleClass="p-button-text p-button-secondary text-gray-400"></p-confirmDialog>

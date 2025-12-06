@@ -1,0 +1,110 @@
+<div class="flex h-screen bg-darkbg overflow-hidden relative">
+
+    <div class="lg:hidden absolute top-4 left-4 z-40">
+        <button (click)="toggleMobileMenu()"
+            class="text-white bg-gray-800 p-2 rounded-lg border border-gray-700 shadow-lg active:scale-95 transition-transform">
+            <i class="pi pi-bars text-xl"></i>
+        </button>
+    </div>
+
+    <div *ngIf="isMobileMenuOpen" (click)="closeMobileMenu()"
+        class="fixed inset-0 bg-black/80 backdrop-blur-sm z-90 lg:hidden transition-opacity">
+    </div>
+
+    <aside class="flex flex-col w-72 border-r border-gray-800 transition-transform duration-300 ease-in-out
+                  fixed inset-y-0 left-0 z-100 bg-gray-950 shadow-2xl
+                  lg:relative lg:translate-x-0 lg:w-64 lg:shadow-none lg:bg-cardbg"
+        [ngClass]="isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'">
+
+        <div class="h-20 flex items-center justify-between px-6 border-b border-gray-800">
+            <div class="flex items-center gap-2">
+                <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                    <i class="pi pi-box text-white font-bold"></i>
+                </div>
+                <h1 class="text-2xl font-bold text-white tracking-tight">SaaS<span class="text-primary">POS</span></h1>
+            </div>
+
+            <button (click)="toggleMobileMenu()"
+                class="lg:hidden text-gray-400 hover:text-white p-2 rounded-full hover:bg-gray-800 transition-colors">
+                <i class="pi pi-times text-xl"></i>
+            </button>
+        </div>
+
+        <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+            <a *ngIf="authService.hasRole(['SUPER_ADMIN','TENANT_ADMIN', 'VENDOR'])" routerLink="/dashboard"
+                routerLinkActive="bg-primary/10 text-primary border-l-4 border-primary" (click)="closeMobileMenu()"
+                class="flex items-center gap-3 p-3 rounded-r-lg text-gray-400 hover:bg-gray-900 hover:text-white transition-all cursor-pointer border-l-4 border-transparent group">
+                <i class="pi pi-home text-lg group-hover:scale-110 transition-transform"></i>
+                <span class="font-medium">Dashboard</span>
+            </a>
+
+            <a *ngIf="authService.hasRole(['SUPER_ADMIN'])" routerLink="/admin/tenants"
+                routerLinkActive="bg-primary/10 text-primary border-l-4 border-primary" (click)="closeMobileMenu()"
+                class="flex items-center gap-3 p-3 rounded-r-lg text-gray-400 hover:bg-gray-900 hover:text-white transition-all cursor-pointer border-l-4 border-transparent group">
+                <i class="pi pi-building text-lg group-hover:scale-110 transition-transform"></i>
+                <span class="font-medium">Gestión de Clientes</span>
+            </a>
+
+            <a *ngIf="authService.hasRole(['SUPER_ADMIN','VENDOR'])" routerLink="/saas/links"
+                routerLinkActive="bg-primary/10 text-primary border-l-4 border-primary" (click)="closeMobileMenu()"
+                class="flex items-center gap-3 p-3 rounded-r-lg text-gray-400 hover:bg-gray-900 hover:text-white transition-all cursor-pointer border-l-4 border-transparent group">
+                <i class="pi pi-key text-lg group-hover:scale-110 transition-transform"></i>
+                <span class="font-medium">Generar Demos</span>
+            </a>
+
+            <a *ngIf="authService.hasRole(['SUPER_ADMIN','TENANT_ADMIN', ])" routerLink="/products"
+                routerLinkActive="bg-primary/10 text-primary border-l-4 border-primary" (click)="closeMobileMenu()"
+                class="flex items-center gap-3 p-3 rounded-r-lg text-gray-400 hover:bg-gray-900 hover:text-white transition-all cursor-pointer border-l-4 border-transparent group">
+                <i class="pi pi-box text-lg group-hover:scale-110 transition-transform"></i>
+                <span class="font-medium">Productos</span>
+            </a>
+
+            <a *ngIf="authService.hasRole(['SUPER_ADMIN','TENANT_ADMIN','CASHIER'])" routerLink="/pos"
+                routerLinkActive="bg-primary/10 text-primary border-l-4 border-primary" (click)="closeMobileMenu()"
+                class="flex items-center gap-3 p-3 rounded-r-lg text-gray-400 hover:bg-gray-900 hover:text-white transition-all cursor-pointer border-l-4 border-transparent group">
+                <i class="pi pi-shopping-cart text-lg group-hover:scale-110 transition-transform"></i>
+                <span class="font-medium">Punto de Venta</span>
+            </a>
+
+            <a *ngIf="authService.hasRole(['SUPER_ADMIN','TENANT_ADMIN'])" routerLink="/vendors"
+                routerLinkActive="bg-primary/10 text-primary border-l-4 border-primary" (click)="closeMobileMenu()"
+                class="flex items-center gap-3 p-3 rounded-r-lg text-gray-400 hover:bg-gray-900 hover:text-white transition-all cursor-pointer border-l-4 border-transparent group">
+                <i class="pi pi-users text-lg group-hover:scale-110 transition-transform"></i>
+                <span class="font-medium">Vendedores</span>
+            </a>
+
+            <a *ngIf="authService.hasRole(['SUPER_ADMIN','TENANT_ADMIN'])" routerLink="/settings"
+                routerLinkActive="bg-primary/10 text-primary border-l-4 border-primary" (click)="closeMobileMenu()"
+                class="flex items-center gap-3 p-3 rounded-r-lg text-gray-400 hover:bg-gray-900 hover:text-white transition-all cursor-pointer border-l-4 border-transparent group">
+                <i class="pi pi-cog text-lg group-hover:scale-110 transition-transform"></i>
+                <span class="font-medium">Settings</span>
+            </a>
+        </nav>
+
+        <div class="p-4 border-t border-gray-800 bg-gray-900/50">
+            <button (click)="logout()"
+                class="w-full flex items-center justify-center gap-2 p-3 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors font-medium">
+                <i class="pi pi-sign-out"></i> Salir
+            </button>
+        </div>
+    </aside>
+
+    <div class="flex-1 flex flex-col overflow-hidden w-full relative z-0">
+        <header class="h-16 bg-cardbg border-b border-gray-800 hidden lg:flex items-center justify-end px-6">
+            <div class="flex items-center gap-3">
+                <div class="text-right">
+                    <p class="text-sm font-bold text-white">{{ currentUser?.fullName || 'Usuario' }}</p>
+                    <p class="text-xs text-gray-400">{{ currentUser?.role }}</p>
+                </div>
+                <div
+                    class="w-10 h-10 rounded-full bg-linear-to-br from-primary to-blue-600 flex items-center justify-center text-white font-bold shadow-lg">
+                    {{ currentUser?.fullName?.charAt(0) || 'U' }}
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto overflow-x-hidden relative w-full pt-16 lg:pt-0">
+            <router-outlet></router-outlet>
+        </main>
+    </div>
+</div>

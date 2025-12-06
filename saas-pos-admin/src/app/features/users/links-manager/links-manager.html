@@ -1,0 +1,47 @@
+<p-toast position="top-center"></p-toast>
+
+<div class="p-6 max-w-5xl mx-auto">
+
+    <div class="flex justify-between items-center mb-8">
+        <div>
+            <h2 class="text-3xl font-bold text-white">Generador de Demos</h2>
+            <p class="text-gray-400">Crea accesos temporales para tus clientes potenciales</p>
+        </div>
+        <button pButton label="Generar Nuevo Link" icon="pi pi-bolt" (click)="generateNew()" [loading]="loading"
+            class="p-button-warning font-bold"></button>
+    </div>
+
+    <div class="grid gap-4">
+
+        <div *ngIf="generatedLinks.length === 0"
+            class="text-center p-10 border-2 border-dashed border-gray-800 rounded-xl">
+            <i class="pi pi-link text-4xl text-gray-600 mb-3"></i>
+            <p class="text-gray-500">No has generado links en esta sesión.</p>
+        </div>
+
+        <div *ngFor="let link of generatedLinks"
+            class="bg-cardbg p-4 rounded-xl border border-gray-700 shadow-lg flex flex-col md:flex-row justify-between items-center gap-4 animate-fade-in-down">
+
+            <div class="flex items-center gap-4 w-full">
+                <div class="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
+                    <i class="pi pi-check text-green-400 text-xl"></i>
+                </div>
+                <div class="overflow-hidden w-full">
+                    <p class="text-xs text-gray-400 uppercase tracking-wider font-bold">URL de Invitación</p>
+                    <p
+                        class="text-white font-mono truncate text-sm md:text-base bg-gray-900 p-2 rounded border border-gray-800 mt-1 select-all">
+                        {{ link.url }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="flex gap-2 flex-shrink-0">
+                <button pButton label="Copiar" icon="pi pi-copy" (click)="copyToClipboard(link.url)"
+                    class="p-button-outlined"></button>
+                <a [href]="link.url" target="_blank" pButton icon="pi pi-external-link"
+                    class="p-button-outlined p-button-secondary"></a>
+            </div>
+
+        </div>
+    </div>
+</div>

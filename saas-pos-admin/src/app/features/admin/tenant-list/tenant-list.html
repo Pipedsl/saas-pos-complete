@@ -1,0 +1,150 @@
+<div class="p-4 lg:p-6 h-full flex flex-col overflow-hidden">
+
+    <div class="flex justify-between items-center mb-6 shrink-0">
+        <div>
+            <h2 class="text-2xl font-bold text-white">Gestión de Clientes</h2>
+            <p class="text-gray-400 text-sm">Supervisa todas las tiendas registradas en la plataforma</p>
+        </div>
+    </div>
+
+    <div class="flex-1 overflow-auto bg-cardbg rounded-xl border border-gray-800 p-1">
+        <p-table [value]="tenants" [loading]="loading" [paginator]="true" [rows]="10" styleClass="p-datatable-sm"
+            responsiveLayout="scroll">
+
+            <ng-template pTemplate="header">
+                <tr>
+                    <th class="text-gray-300">Empresa</th>
+                    <th class="text-gray-300">Dueño / Admin</th>
+                    <th class="text-gray-300">Plan Actual</th>
+                    <th class="text-gray-300 text-center">Estado</th>
+                    <th class="text-gray-300">Vencimiento Demo</th>
+                    <th class="text-gray-300">Registro</th>
+                    <th class="text-gray-300">Gestión</th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-tenant>
+                <tr class="border-b border-gray-800 hover:bg-gray-900 transition-colors">
+
+                    <td>
+                        <div class="font-bold text-white text-lg">{{ tenant.companyName }}</div>
+                        <div class="text-xs text-gray-500 font-mono">ID: {{ tenant.id | slice:0:8 }}...</div>
+                    </td>
+
+                    <td>
+                        <div class="text-gray-200">{{ tenant.ownerName }}</div>
+                        <div class="text-xs text-primary">{{ tenant.ownerEmail }}</div>
+                    </td>
+
+                    <td>
+                        <p-tag [value]="tenant.planName" [severity]="getPlanSeverity(tenant.planName)"></p-tag>
+                    </td>
+
+                    <td class="text-center">
+                        <i class="pi"
+                            [ngClass]="tenant.active ? 'pi-check-circle text-green-500' : 'pi-times-circle text-red-500'"
+                            style="font-size: 1.2rem"></i>
+                    </td>
+
+                    <td>
+                        <div class="flex flex-col">
+                            <span *ngIf="tenant.subscriptionEndDate" class="text-sm text-green-400 font-mono font-bold">
+                                {{ tenant.subscriptionEndDate | date:'dd/MM/yyyy' }}
+                            </span>
+                            <span *ngIf="!tenant.subscriptionEndDate && tenant.demoExpiresAt"
+                                class="text-sm text-yellow-400 font-mono">
+                                Demo: {{ tenant.demoExpiresAt | date:'dd/MM/yyyy' }}
+                            </span>
+                            <span *ngIf="!tenant.subscriptionEndDate && !tenant.demoExpiresAt"
+                                class="text-xs text-gray-600">
+                                -
+                            </span>
+                        </div>
+                    </td>
+
+                    <td class="text-sm text-gray-500">
+                        {{ tenant.createdAt | date:'dd/MM/yy HH:mm' }}
+                    </td>
+
+                    <td>
+                        <button pButton icon="pi pi-cog" label="Gestionar" class="p-button-sm p-button-outlined"
+                            (click)="openSubscription(tenant)">
+                        </button>
+                    </td>
+
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="6" class="text-center p-10 text-gray-500">
+                        <i class="pi pi-folder-open text-4xl mb-2 block"></i>
+                        No hay clientes registrados todavía.
+                    </td>
+                </tr>
+            </ng-template>
+
+        </p-table>
+    </div>
+</div>
+
+<p-dialog header="Gestionar Suscripción" [(visible)]="showSubDialog" [modal]="true"
+    [style]="{width: '90%', maxWidth: '500px'}" styleClass="bg-cardbg text-white border border-gray-800">
+
+    <div class="flex flex-col gap-5 pt-4" *ngIf="selectedTenant">
+
+        <div class="bg-blue-900/20 p-4 rounded border border-blue-500/30 space-y-2">
+            <div>
+                <p class="text-xs text-gray-400 uppercase">Cliente</p>
+                <p class="text-lg font-bold text-white">{{ selectedTenant.companyName }}</p>
+            </div>
+
+            <div class="flex justify-between items-center border-t border-blue-500/30 pt-2 mt-2">
+                <span class="text-sm text-gray-400">Vencimiento Actual:</span>
+                <span class="text-sm font-mono text-blue-300">
+                    {{ (selectedTenant.subscriptionEndDate || selectedTenant.demoExpiresAt) | date:'dd/MM/yyyy' }}
+                </span>
+            </div>
+        </div>
+
+        <div class="flex flex-col gap-2">
+            <label class="text-gray-300 text-sm">Cambiar Plan</label>
+            <p-autocomplete [(ngModel)]="subForm.newPlan" [suggestions]="filteredAvailablePlans"
+                (completeMethod)="filterAvailablePlans($event)" [dropdown]="true" field="label" [forceSelection]="true"
+                placeholder="Mantener plan actual..." styleClass="w-full"
+                inputStyleClass="w-full bg-gray-900 border-gray-700 text-white">
+            </p-autocomplete>
+        </div>
+
+        <div class="flex flex-col gap-2">
+            <label class="text-gray-300 text-sm">Renovar / Agregar Tiempo</label>
+            <p-autocomplete [(ngModel)]="subForm.monthsToAdd" [suggestions]="filteredPlanOptions"
+                (completeMethod)="filterPlans($event)" [dropdown]="true" field="label" [forceSelection]="true"
+                placeholder="Seleccione..." styleClass="w-full"
+                inputStyleClass="w-full bg-gray-900 border-gray-700 text-white">
+            </p-autocomplete>
+        </div>
+
+        <div class="flex flex-col gap-2">
+            <label class="text-gray-300 text-sm">Cajeros Extra (Adicionales al plan)</label>
+            <p-inputNumber [(ngModel)]="subForm.extraCashiers" [showButtons]="true" [min]="0" styleClass="w-full"
+                inputStyleClass="bg-gray-900 border-gray-700 text-white w-full text-center">
+            </p-inputNumber>
+        </div>
+
+        <div class="flex flex-col gap-2">
+            <label class="text-gray-300 text-sm">Estado del Servicio</label>
+            <p-autocomplete [(ngModel)]="subForm.status" [suggestions]="filteredStatusOptions"
+                (completeMethod)="filterStatus($event)" [dropdown]="true" field="label" [forceSelection]="true"
+                placeholder="Seleccione..." styleClass="w-full"
+                inputStyleClass="w-full bg-gray-900 border-gray-700 text-white">
+            </p-autocomplete>
+        </div>
+
+        <div class="flex justify-end pt-4 border-t border-gray-800">
+            <button pButton label="Guardar Cambios" (click)="saveSubscription()" icon="pi pi-check"
+                class="p-button-success w-full font-bold"></button>
+        </div>
+
+    </div>
+</p-dialog>
