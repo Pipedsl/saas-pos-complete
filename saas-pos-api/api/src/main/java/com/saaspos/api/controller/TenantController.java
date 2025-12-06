@@ -13,7 +13,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/settings") // Nueva ruta para configuraciones
-@CrossOrigin(origins = "*")
 public class TenantController {
 
     private final TenantRepository tenantRepository;

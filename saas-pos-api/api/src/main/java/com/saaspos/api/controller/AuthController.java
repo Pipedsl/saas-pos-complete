@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/auth")
-@CrossOrigin(origins = "*") // Permitir acceso desde Angular (localhost:4200)
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
