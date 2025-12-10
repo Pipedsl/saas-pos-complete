@@ -9,3 +9,49 @@ body {
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
+/* --- DEFINICIÓN DE TEMAS --- */
+
+/* 1. MODO CLARO (Por defecto) */
+:root {
+    --primary: #3B82F6;       /* Azul */
+    --secondary: #10B981;     /* Verde */
+    
+    --bg-base: #f8fafc;       /* Slate 50 (Fondo claro) */
+    --bg-card: #ffffff;       /* Blanco puro */
+    
+    --text-main: #0f172a;     /* Slate 900 (Texto oscuro) */
+    --text-sec: #64748b;      /* Slate 500 (Texto gris) */
+}
+
+/* 2. MODO OSCURO (Cuando la etiqueta HTML tiene la clase "dark") */
+.dark {
+    --primary: #3B82F6;
+    --secondary: #10B981;
+    
+    --bg-base: #0f172a;       /* Slate 900 (Tu antiguo darkbg) */
+    --bg-card: #1e293b;       /* Slate 800 (Tu antiguo cardbg) */
+    
+    --text-main: #f8fafc;     /* Slate 50 (Texto claro) */
+    --text-sec: #94a3b8;      /* Slate 400 */
+}
+
+/* 3. APLICAR COLORES GLOBALES */
+body {
+    background-color: var(--bg-base);
+    color: var(--text-main);
+    transition: background-color 0.3s, color 0.3s; /* Transición suave */
+}
+
+/* 4. ARREGLOS DE PRIMENG PARA LIGHT/DARK */
+/* Forzar que los inputs se adapten */
+.p-inputtext, .p-dropdown, .p-inputnumber-input, .p-autocomplete-input {
+    background-color: var(--bg-card) !important;
+    color: var(--text-main) !important;
+    border-color: var(--text-sec) !important;
+}
+
+/* Ajuste para inputs en dark mode */
+.dark .p-inputtext, .dark .p-dropdown, .dark .p-inputnumber-input {
+    background-color: #111827 !important; /* Gray 900 */
+    border-color: #374151 !important; /* Gray 700 */
+}

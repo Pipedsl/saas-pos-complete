@@ -7,16 +7,16 @@
             <div class="col-span-1 lg:col-span-7 flex flex-col gap-4 w-full min-w-0">
 
                 <div class="flex flex-col gap-2 w-full">
-                    <label class="text-gray-300">SKU</label>
+                    <label class="text-textsec">SKU</label>
                     <p-autocomplete formControlName="sku" [suggestions]="suggestedProducts"
                         (completeMethod)="filterSkus($event)" (onSelect)="onSkuSelect($event)" [optionLabel]="'sku'"
                         field="sku" [delay]="0" [minLength]="1" (keydown.enter)="$event.preventDefault()"
                         placeholder="Ej: PROD-001" styleClass="w-full"
-                        inputStyleClass="w-full bg-gray-900 border-gray-700 text-white focus:border-primary">
+                        inputStyleClass="w-full dark:bg-gray-900 border-gray-700 text-textmain focus:border-primary">
                         <ng-template let-prod pTemplate="item">
                             <div class="flex justify-between gap-4 w-full">
                                 <span class="font-mono text-primary font-bold">{{ prod.sku }}</span>
-                                <span class="text-gray-400 text-sm truncate max-w-[150px]">{{ prod.name }}</span>
+                                <span class="text-textsec text-sm truncate max-w-[150px]">{{ prod.name }}</span>
                             </div>
                         </ng-template>
                     </p-autocomplete>
@@ -31,29 +31,31 @@
                 </p-dialog>
 
                 <div class="flex flex-col gap-2 w-full">
-                    <label class="text-gray-300">Nombre</label>
-                    <input pInputText formControlName="name" class="w-full bg-gray-900 border-gray-700 text-white" />
+                    <label class="text-textsec">Nombre</label>
+                    <input pInputText formControlName="name"
+                        class="w-full dark:bg-gray-900 border-gray-700 text-textmain" />
                 </div>
 
-                <div class="flex flex-col gap-2 bg-gray-900/50 p-3 rounded border border-gray-800 w-full">
-                    <label class="text-gray-400 text-sm mb-1">Tipo de Venta</label>
+                <div
+                    class="flex flex-col gap-2 dark:bg-gray-900/50 p-3 rounded border border-gray-200 dark:border-gray-800 w-full">
+                    <label class="text-textsec text-sm mb-1">Tipo de Venta</label>
                     <div class="flex flex-wrap gap-4">
                         <div *ngFor="let opt of unitOptions" class="flex align-items-center">
                             <input type="radio" [value]="opt.value" formControlName="measurementUnit"
                                 class="accent-primary w-4 h-4">
-                            <label class="ml-2 text-gray-300 text-sm">{{ opt.label }}</label>
+                            <label class="ml-2 text-textsec text-sm">{{ opt.label }}</label>
                         </div>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
                     <div class="flex flex-col gap-2 w-full">
-                        <label class="text-gray-300">Categoría</label>
+                        <label class="text-textsec">Categoría</label>
                         <div class="flex gap-2 w-full">
                             <p-autocomplete formControlName="selectedCategory" [suggestions]="filteredCategories"
                                 (completeMethod)="filterCategories($event)" [dropdown]="true" optionLabel="name"
                                 [forceSelection]="true" placeholder="Buscar..." styleClass="w-full"
-                                inputStyleClass="w-full bg-gray-900 border-gray-700 text-white">
+                                inputStyleClass="w-full dark:bg-gray-900 border-gray-700 text-textmain">
                             </p-autocomplete>
                             <button pButton type="button" icon="pi pi-plus" (click)="showCategoryDialog = true"
                                 class="p-button-outlined p-button-secondary flex-shrink-0"></button>
@@ -61,12 +63,12 @@
                     </div>
 
                     <div class="flex flex-col gap-2 w-full">
-                        <label class="text-gray-300">Proveedor</label>
+                        <label class="text-textsec">Proveedor</label>
                         <div class="flex gap-2 w-full">
                             <p-autocomplete formControlName="selectedSupplier" [suggestions]="filteredSuppliers"
                                 (completeMethod)="filterSuppliers($event)" [dropdown]="true" optionLabel="name"
                                 [forceSelection]="true" placeholder="Buscar..." styleClass="w-full"
-                                inputStyleClass="w-full bg-gray-900 border-gray-700 text-white">
+                                inputStyleClass="w-full dark:bg-gray-900 border-gray-700 text-textmain">
                             </p-autocomplete>
                             <button pButton type="button" icon="pi pi-plus" (click)="showSupplierDialog = true"
                                 class="p-button-outlined p-button-secondary flex-shrink-0"></button>
@@ -75,35 +77,35 @@
                 </div>
 
                 <div class="flex flex-col gap-2 w-full">
-                    <label class="text-gray-300">Stock Inicial</label>
+                    <label class="text-textsec">Stock Inicial</label>
                     <p-inputNumber formControlName="stockCurrent" [showButtons]="true" mode="decimal"
                         [minFractionDigits]="0" [maxFractionDigits]="3" locale="es-CL" styleClass="w-full"
-                        inputStyleClass="bg-gray-900 border-gray-700 text-white w-full">
+                        inputStyleClass="dark:bg-gray-900 border-gray-700 text-textmain w-full">
                     </p-inputNumber>
                 </div>
 
                 <div class="flex flex-col gap-2 w-full">
-                    <label class="text-gray-300">Descripción</label>
+                    <label class="text-textsec">Descripción</label>
                     <textarea pTextarea formControlName="description" [autoResize]="true" rows="3"
-                        class="w-full bg-gray-900 border-gray-700 text-white box-border"></textarea>
+                        class="w-full dark:bg-gray-900 border-gray-700 text-textmain box-border"></textarea>
                 </div>
 
-                <div class="mt-2 pt-4 border-t border-gray-800 w-full">
+                <div class="mt-2 pt-4 border-t border-gray-200 dark:border-gray-800 w-full">
                     <div class="flex justify-between items-center mb-3">
-                        <label class="text-gray-300 font-bold text-sm">Características Adicionales</label>
+                        <label class="text-textsec font-bold text-sm">Características Adicionales</label>
                         <button pButton type="button" icon="pi pi-plus" label="Agregar"
                             class="p-button-outlined p-button-sm" (click)="addAttribute()"></button>
                     </div>
 
                     <div *ngIf="attributesList.length > 0"
-                        class="bg-gray-900 rounded p-3 border border-gray-800 space-y-2">
+                        class="dark:bg-gray-900 rounded p-3 border border-gray-200 dark:border-gray-800 space-y-2">
                         <div *ngFor="let attr of attributesList; let i = index" class="flex gap-2">
                             <input pInputText [(ngModel)]="attr.key" [ngModelOptions]="{standalone: true}"
                                 placeholder="Ej: Marca"
-                                class="w-1/2 p-inputtext-sm bg-gray-800 text-white border-gray-700" />
+                                class="w-1/2 p-inputtext-sm dark:bg-gray-800 text-textmain border-gray-700" />
                             <input pInputText [(ngModel)]="attr.value" [ngModelOptions]="{standalone: true}"
                                 placeholder="Ej: Sony"
-                                class="w-1/2 p-inputtext-sm bg-gray-800 text-white border-gray-700" />
+                                class="w-1/2 p-inputtext-sm dark:bg-gray-800 text-textmain border-gray-700" />
                             <button pButton icon="pi pi-trash" class="p-button-danger p-button-text p-button-sm"
                                 (click)="removeAttribute(i)"></button>
                         </div>
@@ -112,48 +114,71 @@
             </div>
 
             <div class="lg:col-span-5 w-full">
-                <div class="bg-gray-900 p-5 rounded-xl border border-gray-700 w-full shadow-lg lg:sticky lg:top-4">
+                <div class="dark:bg-gray-900 p-5 rounded-xl border border-gray-700 w-full shadow-lg lg:sticky lg:top-4">
                     <h3 class="text-primary font-bold border-b border-gray-700 pb-3 mb-4 text-lg">Costos y Precios</h3>
 
-                    <div class="space-y-4">
+                    <div class="space-y-5">
+
                         <div class="flex flex-col gap-1">
-                            <label class="text-xs text-gray-400">Costo Neto (Compra)</label>
+                            <label class="text-xs text-textsec uppercase font-bold">Costo de Compra (Neto)</label>
                             <p-inputNumber formControlName="costPrice" mode="currency" currency="CLP" locale="es-CL"
-                                (onInput)="calculateSellingPrice()" styleClass="w-full"
-                                inputStyleClass="bg-black text-white border-gray-600 text-lg font-bold w-full">
+                                (onInput)="calculateMath()" styleClass="w-full"
+                                inputStyleClass="dark:bg-gray-950 text-white border-gray-600 text-lg font-bold w-full">
                             </p-inputNumber>
                         </div>
 
                         <div class="flex flex-col gap-1">
-                            <label class="text-xs text-gray-400">IVA / Impuesto (%)</label>
-                            <p-inputNumber formControlName="taxPercent" suffix="%" (onInput)="calculateSellingPrice()"
-                                [min]="0" [max]="100" styleClass="w-full"
-                                inputStyleClass="bg-black text-white border-gray-600 w-full">
+                            <label class="text-sm text-primary font-bold uppercase">Precio Venta al Público</label>
+                            <p-inputNumber formControlName="finalPrice" mode="currency" currency="CLP" locale="es-CL"
+                                (onInput)="calculateMath()" styleClass="w-full"
+                                inputStyleClass="dark:bg-gray-950 text-emerald-400 text-3xl font-black border-emerald-500/50 h-16 w-full text-center">
                             </p-inputNumber>
                         </div>
 
-                        <div class="flex flex-col gap-1">
-                            <label class="text-xs text-gray-400">Margen Ganancia (%)</label>
-                            <p-inputNumber formControlName="marginPercent" suffix="%"
-                                (onInput)="calculateSellingPrice()" styleClass="w-full"
-                                inputStyleClass="bg-black text-green-500 font-bold border-gray-600 w-full">
-                            </p-inputNumber>
+                        <div
+                            class="flex flex-col sm:flex-row items-start sm:items-center justify-between bg-gray-800 p-3 rounded border border-gray-700 gap-3">
+
+                            <div class="flex items-center gap-3">
+                                <p-checkbox formControlName="isTaxIncluded" [binary]="true"
+                                    (onChange)="calculateMath()"></p-checkbox>
+                                <label class="text-sm text-white cursor-pointer select-none" (click)="toggleTax()">
+                                    ¿Precio incluye IVA?
+                                </label>
+                            </div>
+
+                            <div class="flex items-center gap-2 w-full sm:w-auto">
+                                <span class="text-xs text-gray-400 whitespace-nowrap">IVA %</span>
+                                <p-inputNumber formControlName="taxPercent" suffix="%" (onInput)="calculateMath()"
+                                    [min]="0" [max]="100" class="w-20"
+                                    inputStyleClass="p-1 text-center bg-gray-900 border-gray-600 text-white text-xs font-bold w-full">
+                                </p-inputNumber>
+                            </div>
                         </div>
 
                         <div class="border-t border-gray-700 my-2"></div>
 
-                        <div class="flex flex-col gap-1">
-                            <label class="text-sm text-primary font-bold">Precio Venta Final (con IVA)</label>
-                            <p-inputNumber formControlName="finalPrice" mode="currency" currency="CLP" locale="es-CL"
-                                (onInput)="calculateMargin()" styleClass="w-full"
-                                inputStyleClass="bg-black text-emerald-400 text-2xl font-black border-emerald-500/50 h-14 w-full">
-                            </p-inputNumber>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-gray-800/50 p-2 rounded border border-gray-700">
+                                <label class="text-[10px] text-gray-500 uppercase block mb-1">Neto (Base)</label>
+                                <p class="text-lg font-mono text-gray-300">
+                                    {{ productForm.get('priceNeto')?.value | currency:'CLP':'symbol':'1.0-0' }}
+                                </p>
+                            </div>
+
+                            <div class="bg-gray-800/50 p-2 rounded border border-gray-700">
+                                <label class="text-[10px] text-gray-500 uppercase block mb-1">Margen Ganancia</label>
+                                <p class="text-lg font-bold"
+                                    [ngClass]="productForm.get('marginPercent')?.value > 0 ? 'text-green-400' : 'text-red-400'">
+                                    {{ productForm.get('marginPercent')?.value }}%
+                                </p>
+                            </div>
                         </div>
+
                     </div>
                 </div>
             </div>
             <div
-                class="col-span-1 lg:col-span-12 flex flex-col sm:flex-row justify-end gap-3 mt-6 pt-6 border-t border-gray-800">
+                class="col-span-1 lg:col-span-12 flex flex-col sm:flex-row justify-end gap-3 mt-6 pt-6 border-t border-gray-200 dark:border-gray-800">
                 <button pButton type="button" label="Cancelar"
                     class="p-button-text p-button-secondary w-full sm:w-auto order-2 sm:order-1"
                     routerLink="/products"></button>
@@ -165,19 +190,20 @@
 </div>
 
 <p-dialog header="Nueva Categoría" [(visible)]="showCategoryDialog" [modal]="true"
-    [style]="{width: '95vw', maxWidth: '400px'}" styleClass="bg-cardbg text-white border border-gray-800">
+    [style]="{width: '95vw', maxWidth: '400px'}"
+    styleClass="bg-cardbg text-textmain border border-gray-200 dark:border-gray-800">
 
     <div class="flex flex-col gap-4 pt-2">
         <div class="flex flex-col gap-2">
-            <label class="text-sm text-gray-300">Nombre *</label>
-            <input pInputText [(ngModel)]="quickCategory.name" class="bg-gray-900 border-gray-700 text-white w-full"
-                placeholder="Ej: Bebidas" />
+            <label class="text-sm text-textsec">Nombre *</label>
+            <input pInputText [(ngModel)]="quickCategory.name"
+                class="dark:bg-gray-900 border-gray-700 text-textmain w-full" placeholder="Ej: Bebidas" />
         </div>
 
         <div class="flex flex-col gap-2">
-            <label class="text-sm text-gray-300">Descripción</label>
+            <label class="text-sm text-textsec">Descripción</label>
             <textarea pTextarea [(ngModel)]="quickCategory.description" rows="2"
-                class="bg-gray-900 border-gray-700 text-white w-full" placeholder="Opcional..."></textarea>
+                class="dark:bg-gray-900 border-gray-700 text-textmain w-full" placeholder="Opcional..."></textarea>
         </div>
 
         <div class="flex justify-end pt-2 border-t border-gray-700 mt-2">
@@ -188,39 +214,40 @@
 </p-dialog>
 
 <p-dialog header="Nuevo Proveedor" [(visible)]="showSupplierDialog" [modal]="true"
-    [style]="{width: '95vw', maxWidth: '500px'}" styleClass="bg-cardbg text-white border border-gray-800">
+    [style]="{width: '95vw', maxWidth: '500px'}"
+    styleClass="bg-cardbg text-textmain border border-gray-200 dark:border-gray-800">
 
     <div class="flex flex-col gap-4 pt-2">
 
         <div class="flex flex-col gap-2">
-            <label class="text-sm text-gray-300">Nombre Fantasía *</label>
-            <input pInputText [(ngModel)]="quickSupplier.name" class="bg-gray-900 border-gray-700 text-white w-full"
-                placeholder="Ej: Distribuidora Juanito" />
+            <label class="text-sm text-textsec">Nombre Fantasía *</label>
+            <input pInputText [(ngModel)]="quickSupplier.name"
+                class="dark:bg-gray-900 border-gray-700 text-textmain w-full" placeholder="Ej: Distribuidora Juanito" />
         </div>
 
         <div class="flex flex-col gap-2">
-            <label class="text-sm text-gray-300">RUT Empresa</label>
-            <input pInputText [(ngModel)]="quickSupplier.rut" class="bg-gray-900 border-gray-700 text-white w-full"
-                placeholder="Ej: 76.123.456-K" />
+            <label class="text-sm text-textsec">RUT Empresa</label>
+            <input pInputText [(ngModel)]="quickSupplier.rut"
+                class="dark:bg-gray-900 border-gray-700 text-textmain w-full" placeholder="Ej: 76.123.456-K" />
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div class="flex flex-col gap-2">
-                <label class="text-sm text-gray-300">Nombre Contacto</label>
+                <label class="text-sm text-textsec">Nombre Contacto</label>
                 <input pInputText [(ngModel)]="quickSupplier.contactName"
-                    class="bg-gray-900 border-gray-700 text-white w-full" placeholder="Ej: Juan Pérez" />
+                    class="dark:bg-gray-900 border-gray-700 text-textmain w-full" placeholder="Ej: Juan Pérez" />
             </div>
             <div class="flex flex-col gap-2">
-                <label class="text-sm text-gray-300">Teléfono</label>
+                <label class="text-sm text-textsec">Teléfono</label>
                 <input pInputText [(ngModel)]="quickSupplier.contactPhone"
-                    class="bg-gray-900 border-gray-700 text-white w-full" placeholder="+569..." />
+                    class="dark:bg-gray-900 border-gray-700 text-textmain w-full" placeholder="+569..." />
             </div>
         </div>
 
         <div class="flex flex-col gap-2">
-            <label class="text-sm text-gray-300">Email Contacto</label>
+            <label class="text-sm text-textsec">Email Contacto</label>
             <input pInputText [(ngModel)]="quickSupplier.contactEmail"
-                class="bg-gray-900 border-gray-700 text-white w-full" placeholder="contacto@proveedor.cl" />
+                class="dark:bg-gray-900 border-gray-700 text-textmain w-full" placeholder="contacto@proveedor.cl" />
         </div>
 
         <div class="flex justify-end pt-2 border-t border-gray-700 mt-2">
@@ -230,6 +257,6 @@
     </div>
 </p-dialog>
 <p-confirmDialog [style]="{width: '450px'}"
-    styleClass="bg-cardbg text-white border border-gray-800 font-sans shadow-2xl"
+    styleClass="bg-cardbg text-textmain border border-gray-200 dark:border-gray-800 font-sans shadow-2xl"
     acceptButtonStyleClass="p-button-primary font-bold"
-    rejectButtonStyleClass="p-button-text p-button-secondary text-gray-400"></p-confirmDialog>
+    rejectButtonStyleClass="p-button-text p-button-secondary text-textsec"></p-confirmDialog>

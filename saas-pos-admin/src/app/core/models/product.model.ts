@@ -3,18 +3,27 @@ export interface Product {
     sku: string;
     name: string;
     description?: string;
-    priceNeto: number;
-    measurementUnit: 'UNIT' | 'KG';
-    taxPercent: number;
+
+    priceNeto: number;      // El valor base (calculado)
+    costPrice: number;      // Costo de compra
+    taxPercent?: number;    // IVA (ej: 19)
+
+    // NUEVOS CAMPOS (Para la lógica inversa)
+    priceFinal?: number;    // El precio bruto que ve el cliente
+    isTaxIncluded?: boolean;// Checkbox
+    marginPercent?: number; // Calculado para visualización
+
+
     stockCurrent: number;
     stockMin: number;
-    //El JSONB se mapea asi en el front:
+    measurementUnit: 'UNIT' | 'KG';
     attributes?: { [key: string]: any };
+
     categoryId?: string;
     categoryName?: string;
-    costPrice: number;      // Costo Neto Compra
-    marginPercent?: number; // Margen deseado
-    finalPrice?: number;    // Precio Venta Final (Calculado)
     supplierId?: string;
     supplierName?: string;
+
+    isActive: boolean;
+
 }

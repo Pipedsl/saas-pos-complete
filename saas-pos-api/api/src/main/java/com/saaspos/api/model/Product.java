@@ -42,10 +42,16 @@ public class Product {
     private String description;
 
     @Column(name = "cost_price")
-    private java.math.BigDecimal costPrice = java.math.BigDecimal.ZERO;
+    private BigDecimal costPrice = BigDecimal.ZERO;
 
     @Column(name = "price_neto", nullable = false)
     private BigDecimal priceNeto;
+
+    @Column(name = "price_final")
+    private BigDecimal priceFinal; // El número que escribió el usuario (Ej: 1190)
+
+    @Column(name = "is_tax_included")
+    private Boolean isTaxIncluded = true; // ¿Ese 1190 tiene IVA?
 
     @Column(name = "tax_percent")
     private BigDecimal taxPercent = new BigDecimal("19.0");
@@ -72,5 +78,7 @@ public class Product {
     @Column(name = "created_at", updatable = false)
     private LocalDateTime createdAt;
 
+    @Transient
+    private BigDecimal calculatedMargin;
 
 }

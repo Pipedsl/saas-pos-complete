@@ -4,8 +4,8 @@
 
     <div class="flex justify-between items-center mb-4 lg:mb-6 shrink-0">
         <div>
-            <h2 class="text-xl lg:text-2xl font-bold text-white">Mi Equipo</h2>
-            <p class="text-gray-400 text-xs lg:text-sm">Gestiona el acceso</p>
+            <h2 class="text-xl lg:text-2xl font-bold text-textmain">Mi Equipo</h2>
+            <p class="text-textsec text-xs lg:text-sm">Gestiona el acceso</p>
         </div>
         <p-button label="Nuevo" icon="pi pi-user-plus" (onClick)="openNew()"
             styleClass="p-button-primary p-button-sm"></p-button>
@@ -13,20 +13,20 @@
 
     <div class="flex-1 overflow-y-auto">
 
-        <div class="hidden md:block bg-cardbg rounded-xl border border-gray-800 p-1">
+        <div class="hidden md:block bg-cardbg rounded-xl border border-gray-200 dark:border-gray-800 p-1">
             <p-table [value]="users" [loading]="loading" styleClass="p-datatable-sm" responsiveLayout="scroll">
                 <ng-template pTemplate="header">
                     <tr>
-                        <th class="text-gray-300">Nombre</th>
-                        <th class="text-gray-300">Email</th>
-                        <th class="text-gray-300">Rol</th>
-                        <th class="text-gray-300">Estado</th>
+                        <th class="text-textsec">Nombre</th>
+                        <th class="text-textsec">Email</th>
+                        <th class="text-textsec">Rol</th>
+                        <th class="text-textsec">Estado</th>
                     </tr>
                 </ng-template>
                 <ng-template pTemplate="body" let-user>
-                    <tr class="border-b border-gray-800 hover:bg-gray-900 transition-colors">
-                        <td class="font-bold text-white">{{ user.fullName }}</td>
-                        <td class="text-gray-400">{{ user.email }}</td>
+                    <tr class="border-b border-gray-200 dark:border-gray-800 hover:dark:bg-gray-900 transition-colors">
+                        <td class="font-bold text-textmain">{{ user.fullName }}</td>
+                        <td class="text-textsec">{{ user.email }}</td>
                         <td>
                             <p-tag [value]="user.role" [severity]="getRoleSeverity(user.role)"></p-tag>
                         </td>
@@ -34,7 +34,7 @@
                             <div class="flex items-center gap-2">
                                 <i class="pi"
                                     [ngClass]="user.active ? 'pi-check-circle text-green-500' : 'pi-times-circle text-red-500'"></i>
-                                <span class="text-sm text-gray-300">{{ user.active ? 'Activo' : 'Inactivo' }}</span>
+                                <span class="text-sm text-textsec">{{ user.active ? 'Activo' : 'Inactivo' }}</span>
                             </div>
                         </td>
                     </tr>
@@ -49,15 +49,15 @@
 
         <div class="md:hidden space-y-3 pb-20">
             <div *ngFor="let user of users"
-                class="bg-cardbg p-4 rounded-lg border border-gray-800 shadow-md flex items-center justify-between">
+                class="bg-cardbg p-4 rounded-lg border border-gray-200 dark:border-gray-800 shadow-md flex items-center justify-between">
 
                 <div class="flex flex-col gap-1">
                     <div class="flex items-center gap-2">
-                        <span class="text-white font-bold text-lg">{{ user.fullName }}</span>
+                        <span class="text-textmain font-bold text-lg">{{ user.fullName }}</span>
                         <i class="pi pi-circle-fill text-[8px]"
                             [ngClass]="user.active ? 'text-green-500' : 'text-red-500'"></i>
                     </div>
-                    <span class="text-gray-400 text-sm">{{ user.email }}</span>
+                    <span class="text-textsec text-sm">{{ user.email }}</span>
                     <div class="mt-1">
                         <p-tag [value]="user.role" [severity]="getRoleSeverity(user.role)"
                             styleClass="text-[10px]"></p-tag>
@@ -77,33 +77,34 @@
 </div>
 
 <p-dialog header="Contratar Empleado" [(visible)]="showDialog" [modal]="true"
-    [style]="{width: '95vw', maxWidth: '450px'}" styleClass="bg-cardbg text-white">
+    [style]="{width: '95vw', maxWidth: '450px'}" styleClass="bg-cardbg text-textmain">
 
     <form [formGroup]="userForm" (ngSubmit)="saveUser()" class="flex flex-col gap-4 pt-2">
 
         <div class="flex flex-col gap-2">
-            <label class="text-gray-300 text-sm">Nombre Completo</label>
-            <input pInputText formControlName="fullName" class="bg-gray-900 border-gray-700 text-white w-full" />
+            <label class="text-textsec text-sm">Nombre Completo</label>
+            <input pInputText formControlName="fullName"
+                class="dark:bg-gray-900 border-gray-700 text-textmain w-full" />
         </div>
 
         <div class="flex flex-col gap-2">
-            <label class="text-gray-300 text-sm">Correo Electrónico</label>
+            <label class="text-textsec text-sm">Correo Electrónico</label>
             <input pInputText formControlName="email" type="email"
-                class="bg-gray-900 border-gray-700 text-white w-full" />
+                class="dark:bg-gray-900 border-gray-700 text-textmain w-full" />
         </div>
 
         <div class="flex flex-col gap-2">
-            <label class="text-gray-300 text-sm">Contraseña Inicial</label>
+            <label class="text-textsec text-sm">Contraseña Inicial</label>
             <p-password formControlName="password" [feedback]="false" [toggleMask]="true" styleClass="w-full"
-                inputStyleClass="bg-gray-900 border-gray-700 text-white w-full"></p-password>
+                inputStyleClass="dark:bg-gray-900 border-gray-700 text-textmain w-full"></p-password>
         </div>
 
         <div class="flex flex-col gap-2">
-            <label class="text-gray-300 text-sm">Rol</label>
+            <label class="text-textsec text-sm">Rol</label>
             <p-autocomplete formControlName="selectedRole" [suggestions]="filteredRoles"
                 (completeMethod)="filterRoles($event)" [dropdown]="true" field="label" [forceSelection]="true"
                 placeholder="Seleccione..." styleClass="w-full"
-                inputStyleClass="w-full bg-gray-900 border-gray-700 text-white">
+                inputStyleClass="w-full dark:bg-gray-900 border-gray-700 text-textmain">
             </p-autocomplete>
         </div>
 

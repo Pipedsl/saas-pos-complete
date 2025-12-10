@@ -4,8 +4,8 @@
 
     <div class="flex justify-between items-center mb-8">
         <div>
-            <h2 class="text-3xl font-bold text-white">Generador de Demos</h2>
-            <p class="text-gray-400">Crea accesos temporales para tus clientes potenciales</p>
+            <h2 class="text-3xl font-bold text-textmain">Generador de Demos</h2>
+            <p class="text-textsec">Crea accesos temporales para tus clientes potenciales</p>
         </div>
         <button pButton label="Generar Nuevo Link" icon="pi pi-bolt" (click)="generateNew()" [loading]="loading"
             class="p-button-warning font-bold"></button>
@@ -14,7 +14,7 @@
     <div class="grid gap-4">
 
         <div *ngIf="generatedLinks.length === 0"
-            class="text-center p-10 border-2 border-dashed border-gray-800 rounded-xl">
+            class="text-center p-10 border-2 border-dashed border-gray-200 dark:border-gray-800 rounded-xl">
             <i class="pi pi-link text-4xl text-gray-600 mb-3"></i>
             <p class="text-gray-500">No has generado links en esta sesión.</p>
         </div>
@@ -27,9 +27,9 @@
                     <i class="pi pi-check text-green-400 text-xl"></i>
                 </div>
                 <div class="overflow-hidden w-full">
-                    <p class="text-xs text-gray-400 uppercase tracking-wider font-bold">URL de Invitación</p>
+                    <p class="text-xs text-textsec uppercase tracking-wider font-bold">URL de Invitación</p>
                     <p
-                        class="text-white font-mono truncate text-sm md:text-base bg-gray-900 p-2 rounded border border-gray-800 mt-1 select-all">
+                        class="text-textmain font-mono truncate text-sm md:text-base dark:bg-gray-900 p-2 rounded border border-gray-200 dark:border-gray-800 mt-1 select-all">
                         {{ link.url }}
                     </p>
                 </div>

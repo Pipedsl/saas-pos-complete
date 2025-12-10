@@ -1,87 +1,75 @@
 <div class="flex h-screen bg-darkbg overflow-hidden relative">
 
-    <div class="lg:hidden absolute top-4 left-4 z-40">
-        <button (click)="toggleMobileMenu()"
-            class="text-white bg-gray-800 p-2 rounded-lg border border-gray-700 shadow-lg active:scale-95 transition-transform">
-            <i class="pi pi-bars text-xl"></i>
-        </button>
-    </div>
-
     <div *ngIf="isMobileMenuOpen" (click)="closeMobileMenu()"
         class="fixed inset-0 bg-black/80 backdrop-blur-sm z-90 lg:hidden transition-opacity">
     </div>
 
-    <aside class="flex flex-col w-72 border-r border-gray-800 transition-transform duration-300 ease-in-out
-                  fixed inset-y-0 left-0 z-100 bg-gray-950 shadow-2xl
-                  lg:relative lg:translate-x-0 lg:w-64 lg:shadow-none lg:bg-cardbg"
+    <aside class="flex flex-col w-72 border-r border-gray-200 dark:border-gray-800 transition-transform duration-300 ease-in-out
+                  fixed inset-y-0 left-0 z-100 dark:bg-gray-950 shadow-2xl bg-cardbg
+                  lg:relative lg:translate-x-0 lg:w-64 lg:shadow-none"
         [ngClass]="isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'">
 
-        <div class="h-20 flex items-center justify-between px-6 border-b border-gray-800">
+        <div class="h-16 flex items-center justify-between px-6 border-b border-gray-200 dark:border-gray-800 shrink-0">
             <div class="flex items-center gap-2">
-                <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
+                <div class="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-sm">
                     <i class="pi pi-box text-white font-bold"></i>
                 </div>
-                <h1 class="text-2xl font-bold text-white tracking-tight">SaaS<span class="text-primary">POS</span></h1>
+                <h1 class="text-2xl font-bold text-textmain tracking-tight">SaaS<span class="text-primary">POS</span>
+                </h1>
             </div>
 
             <button (click)="toggleMobileMenu()"
-                class="lg:hidden text-gray-400 hover:text-white p-2 rounded-full hover:bg-gray-800 transition-colors">
+                class="lg:hidden text-textsec hover:text-textmain p-2 rounded-full hover:dark:bg-gray-800 transition-colors">
                 <i class="pi pi-times text-xl"></i>
             </button>
         </div>
 
         <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
-            <a *ngIf="authService.hasRole(['SUPER_ADMIN','TENANT_ADMIN', 'VENDOR'])" routerLink="/dashboard"
-                routerLinkActive="bg-primary/10 text-primary border-l-4 border-primary" (click)="closeMobileMenu()"
-                class="flex items-center gap-3 p-3 rounded-r-lg text-gray-400 hover:bg-gray-900 hover:text-white transition-all cursor-pointer border-l-4 border-transparent group">
-                <i class="pi pi-home text-lg group-hover:scale-110 transition-transform"></i>
-                <span class="font-medium">Dashboard</span>
-            </a>
 
-            <a *ngIf="authService.hasRole(['SUPER_ADMIN'])" routerLink="/admin/tenants"
-                routerLinkActive="bg-primary/10 text-primary border-l-4 border-primary" (click)="closeMobileMenu()"
-                class="flex items-center gap-3 p-3 rounded-r-lg text-gray-400 hover:bg-gray-900 hover:text-white transition-all cursor-pointer border-l-4 border-transparent group">
-                <i class="pi pi-building text-lg group-hover:scale-110 transition-transform"></i>
-                <span class="font-medium">Gestión de Clientes</span>
-            </a>
+            <ng-template #menuLink let-path="path" let-icon="icon" let-label="label">
+                <a [routerLink]="path"
+                    routerLinkActive="dark:bg-gray-950/10 text-primary border-l-4 border-primary bg-gray-100"
+                    (click)="closeMobileMenu()"
+                    class="flex items-center gap-3 p-3 rounded-r-lg text-textsec hover:dark:bg-gray-900 hover:bg-gray-50 hover:text-textmain transition-all cursor-pointer border-l-4 border-transparent group">
+                    <i [class]="'pi ' + icon + ' text-lg group-hover:scale-110 transition-transform'"></i>
+                    <span class="font-medium">{{ label }}</span>
+                </a>
+            </ng-template>
 
-            <a *ngIf="authService.hasRole(['SUPER_ADMIN','VENDOR'])" routerLink="/saas/links"
-                routerLinkActive="bg-primary/10 text-primary border-l-4 border-primary" (click)="closeMobileMenu()"
-                class="flex items-center gap-3 p-3 rounded-r-lg text-gray-400 hover:bg-gray-900 hover:text-white transition-all cursor-pointer border-l-4 border-transparent group">
-                <i class="pi pi-key text-lg group-hover:scale-110 transition-transform"></i>
-                <span class="font-medium">Generar Demos</span>
-            </a>
+            <ng-container *ngIf="authService.hasRole(['SUPER_ADMIN','TENANT_ADMIN', 'VENDOR'])">
+                <ng-container
+                    *ngTemplateOutlet="menuLink; context: {path: '/dashboard', icon: 'pi-home', label: 'Dashboard'}"></ng-container>
+            </ng-container>
 
-            <a *ngIf="authService.hasRole(['SUPER_ADMIN','TENANT_ADMIN', ])" routerLink="/products"
-                routerLinkActive="bg-primary/10 text-primary border-l-4 border-primary" (click)="closeMobileMenu()"
-                class="flex items-center gap-3 p-3 rounded-r-lg text-gray-400 hover:bg-gray-900 hover:text-white transition-all cursor-pointer border-l-4 border-transparent group">
-                <i class="pi pi-box text-lg group-hover:scale-110 transition-transform"></i>
-                <span class="font-medium">Productos</span>
-            </a>
+            <ng-container *ngIf="authService.hasRole(['SUPER_ADMIN'])">
+                <ng-container
+                    *ngTemplateOutlet="menuLink; context: {path: '/admin/tenants', icon: 'pi-building', label: 'Gestión de Clientes'}"></ng-container>
+            </ng-container>
 
-            <a *ngIf="authService.hasRole(['SUPER_ADMIN','TENANT_ADMIN','CASHIER'])" routerLink="/pos"
-                routerLinkActive="bg-primary/10 text-primary border-l-4 border-primary" (click)="closeMobileMenu()"
-                class="flex items-center gap-3 p-3 rounded-r-lg text-gray-400 hover:bg-gray-900 hover:text-white transition-all cursor-pointer border-l-4 border-transparent group">
-                <i class="pi pi-shopping-cart text-lg group-hover:scale-110 transition-transform"></i>
-                <span class="font-medium">Punto de Venta</span>
-            </a>
+            <ng-container *ngIf="authService.hasRole(['SUPER_ADMIN','VENDOR'])">
+                <ng-container
+                    *ngTemplateOutlet="menuLink; context: {path: '/saas/links', icon: 'pi-key', label: 'Generar Demos'}"></ng-container>
+            </ng-container>
 
-            <a *ngIf="authService.hasRole(['SUPER_ADMIN','TENANT_ADMIN'])" routerLink="/vendors"
-                routerLinkActive="bg-primary/10 text-primary border-l-4 border-primary" (click)="closeMobileMenu()"
-                class="flex items-center gap-3 p-3 rounded-r-lg text-gray-400 hover:bg-gray-900 hover:text-white transition-all cursor-pointer border-l-4 border-transparent group">
-                <i class="pi pi-users text-lg group-hover:scale-110 transition-transform"></i>
-                <span class="font-medium">Vendedores</span>
-            </a>
+            <ng-container *ngIf="authService.hasRole(['SUPER_ADMIN','TENANT_ADMIN'])">
+                <ng-container
+                    *ngTemplateOutlet="menuLink; context: {path: '/products', icon: 'pi-box', label: 'Productos'}"></ng-container>
+            </ng-container>
 
-            <a *ngIf="authService.hasRole(['SUPER_ADMIN','TENANT_ADMIN'])" routerLink="/settings"
-                routerLinkActive="bg-primary/10 text-primary border-l-4 border-primary" (click)="closeMobileMenu()"
-                class="flex items-center gap-3 p-3 rounded-r-lg text-gray-400 hover:bg-gray-900 hover:text-white transition-all cursor-pointer border-l-4 border-transparent group">
-                <i class="pi pi-cog text-lg group-hover:scale-110 transition-transform"></i>
-                <span class="font-medium">Settings</span>
-            </a>
+            <ng-container *ngIf="authService.hasRole(['SUPER_ADMIN','TENANT_ADMIN','CASHIER'])">
+                <ng-container
+                    *ngTemplateOutlet="menuLink; context: {path: '/pos', icon: 'pi-shopping-cart', label: 'Punto de Venta'}"></ng-container>
+            </ng-container>
+
+            <ng-container *ngIf="authService.hasRole(['SUPER_ADMIN','TENANT_ADMIN'])">
+                <ng-container
+                    *ngTemplateOutlet="menuLink; context: {path: '/vendors', icon: 'pi-users', label: 'Vendedores'}"></ng-container>
+                <ng-container
+                    *ngTemplateOutlet="menuLink; context: {path: '/settings', icon: 'pi-cog', label: 'Configuración'}"></ng-container>
+            </ng-container>
         </nav>
 
-        <div class="p-4 border-t border-gray-800 bg-gray-900/50">
+        <div class="p-4 border-t border-gray-200 dark:border-gray-800 dark:bg-gray-900/50">
             <button (click)="logout()"
                 class="w-full flex items-center justify-center gap-2 p-3 text-red-400 hover:bg-red-500/10 rounded-lg transition-colors font-medium">
                 <i class="pi pi-sign-out"></i> Salir
@@ -90,20 +78,45 @@
     </aside>
 
     <div class="flex-1 flex flex-col overflow-hidden w-full relative z-0">
-        <header class="h-16 bg-cardbg border-b border-gray-800 hidden lg:flex items-center justify-end px-6">
-            <div class="flex items-center gap-3">
-                <div class="text-right">
-                    <p class="text-sm font-bold text-white">{{ currentUser?.fullName || 'Usuario' }}</p>
-                    <p class="text-xs text-gray-400">{{ currentUser?.role }}</p>
-                </div>
-                <div
-                    class="w-10 h-10 rounded-full bg-linear-to-br from-primary to-blue-600 flex items-center justify-center text-white font-bold shadow-lg">
-                    {{ currentUser?.fullName?.charAt(0) || 'U' }}
+
+        <header
+            class="h-16 bg-cardbg border-b border-gray-200 dark:border-gray-800 flex items-center justify-between px-4 shrink-0 transition-colors z-30">
+
+            <div class="flex items-center">
+                <button (click)="toggleMobileMenu()"
+                    class="lg:hidden text-textmain p-2 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm active:scale-95 transition-transform hover:bg-gray-100 dark:hover:bg-gray-800 mr-3">
+                    <i class="pi pi-bars text-xl"></i>
+                </button>
+
+                <span class="lg:hidden font-bold text-lg text-textmain">SaaS<span class="text-primary">POS</span></span>
+            </div>
+
+            <div class="flex items-center gap-2 sm:gap-4">
+
+                <button (click)="themeService.toggleTheme()"
+                    class="p-2 rounded-full text-textsec hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-700">
+                    <i class="pi" [ngClass]="themeService.isDark() ? 'pi-sun' : 'pi-moon'"
+                        style="font-size: 1.2rem"></i>
+                </button>
+
+                <div class="h-6 w-px bg-gray-200 dark:bg-gray-700 hidden sm:block"></div>
+
+                <div class="flex items-center gap-3">
+                    <div class="text-right hidden sm:block">
+                        <p class="text-sm font-bold text-textmain leading-tight">{{ currentUser?.fullName || 'Usuario'
+                            }}</p>
+                        <p class="text-[10px] text-textsec uppercase font-bold tracking-wider">{{ currentUser?.role }}
+                        </p>
+                    </div>
+                    <div
+                        class="w-9 h-9 rounded-full bg-linear-to-br from-primary to-blue-600 flex items-center justify-center text-white font-bold shadow-md text-sm">
+                        {{ currentUser?.fullName?.charAt(0) || 'U' }}
+                    </div>
                 </div>
             </div>
         </header>
 
-        <main class="flex-1 overflow-y-auto overflow-x-hidden relative w-full pt-16 lg:pt-0">
+        <main class="flex-1 overflow-y-auto overflow-x-hidden relative w-full pt-0 bg-darkbg">
             <router-outlet></router-outlet>
         </main>
     </div>

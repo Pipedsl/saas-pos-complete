@@ -34,4 +34,10 @@ public class SaleItem {
 
     @Column(name = "cost_price_at_sale")
     private BigDecimal costPriceAtSale;
+
+    @Column(name = "net_price_at_sale")
+    private BigDecimal netPriceAtSale; // Precio Neto real (Base Imponible)
+
+    @Column(name = "tax_amount_at_sale")
+    private BigDecimal taxAmountAtSale;
 }

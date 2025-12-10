@@ -75,15 +75,31 @@ public class SaleService {
             SaleItem saleItem = new SaleItem();
             saleItem.setProduct(product);
             saleItem.setQuantity(qtyToSell);
-            saleItem.setUnitPrice(itemDto.getUnitPrice());
-
+            // 1. Guardar Costo Histórico (Snapshot)
             BigDecimal costAtMoment = product.getCostPrice() != null ? product.getCostPrice() : BigDecimal.ZERO;
             saleItem.setCostPriceAtSale(costAtMoment);
 
-            // Calculamos el impuesto unitario aproximado (opcional, pero útil)
-            // UnitTax = PrecioUnitario - (PrecioUnitario / 1.19)
-            BigDecimal unitNet = itemDto.getUnitPrice().divide(new BigDecimal("1.19"), 0, RoundingMode.HALF_UP);
-            saleItem.setUnitTax(itemDto.getUnitPrice().subtract(unitNet));
+            // 2. Guardar Precio Neto Histórico (Base imponible)
+            BigDecimal netPrice = product.getPriceNeto();
+            saleItem.setNetPriceAtSale(netPrice); // <--- NUEVO CAMPO EN ENTIDAD SaleItem
+
+            // 3. Guardar Impuesto (Para tema legal)
+            BigDecimal taxPercent = product.getTaxPercent() != null ? product.getTaxPercent() : new BigDecimal("19.0");
+            BigDecimal taxFactor = taxPercent.divide(new BigDecimal("100"), 4, RoundingMode.HALF_UP);
+
+            // Impuesto unitario: 100 * 0.19 = 19
+            BigDecimal unitTaxCalc = netPrice.multiply(taxFactor);
+            saleItem.setUnitTax(unitTaxCalc);
+
+            // Impuesto total línea (opcional, si agregaste la columna tax_amount_at_sale)
+            saleItem.setTaxAmountAtSale(unitTaxCalc.multiply(qtyToSell));
+
+            // 4. Precio Unitario Final (Gross/Bruto) para el ticket
+            // Neto (100) + Impuesto (19) = 119
+            BigDecimal grossUnitPrice = netPrice.add(unitTaxCalc);
+
+            // Redondeamos a 0 decimales para CLP (pesos chilenos)
+            saleItem.setUnitPrice(grossUnitPrice.setScale(0, RoundingMode.HALF_UP));
 
             sale.addItem(saleItem);
         }

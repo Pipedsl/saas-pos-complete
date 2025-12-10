@@ -36,36 +36,21 @@ public class DashboardController {
     public ResponseEntity<DashboardStatsDto> getStats() {
         UUID tenantId = getCurrentTenantId();
 
-        // 1. Configurar Zonas Horarias
+        // 1. Obtener Fecha Hoy en Chile
         ZoneId chileZone = ZoneId.of("America/Santiago");
-        ZoneId utcZone = ZoneId.of("UTC");
+        LocalDate todayChile = LocalDate.now(chileZone);
 
-        // 2. Calcular rangos de tiempo exactos
-        ZonedDateTime nowChile = ZonedDateTime.now(chileZone);
+        System.out.println("--- DASHBOARD NATIVO ---");
+        System.out.println("Tenant: " + tenantId);
+        System.out.println("Fecha Chile: " + todayChile);
 
-        // Inicio del día en Chile (00:00:00)
-        ZonedDateTime startChile = nowChile.toLocalDate().atStartOfDay(chileZone);
-        // Fin del día en Chile (23:59:59)
-        ZonedDateTime endChile = nowChile.toLocalDate().atTime(LocalTime.MAX).atZone(chileZone);
-
-
-        LocalDateTime startUTC = startChile.withZoneSameInstant(utcZone).toLocalDateTime();
-        LocalDateTime endUTC = endChile.withZoneSameInstant(utcZone).toLocalDateTime();
-
-
-        // Debug para consola
-        System.out.println("--- DASHBOARD MIXTO ---");
-        System.out.println("Rango UTC calculado: " + startUTC + " a " + endUTC);
-
-        // 3. Consultas
-        LocalDate todayChile = nowChile.toLocalDate();
-
+        // 2. Ejecutar Consultas
         BigDecimal totalSales = saleRepository.sumTotalSalesByDate(tenantId, todayChile);
         long transactions = saleRepository.countTransactionsByDate(tenantId, todayChile);
         long lowStock = productRepository.countLowStock(tenantId);
 
-        // Aquí sí usamos las variables UTC que acabamos de definir
-        BigDecimal totalProfit = saleRepository.calculateProfitByRange(tenantId, startUTC, endUTC);
+        // 3. Utilidad Real (Usando la nueva query optimizada)
+        BigDecimal totalProfit = saleRepository.calculateRealProfit(tenantId, todayChile);
 
         return ResponseEntity.ok(new DashboardStatsDto(totalSales, transactions, lowStock, totalProfit));
     }

@@ -2,15 +2,15 @@
 
     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 lg:mb-6 shrink-0 gap-4">
         <div>
-            <h2 class="text-xl lg:text-2xl font-bold text-white">Inventario</h2>
-            <p class="text-gray-400 text-xs lg:text-sm">Gestiona tus productos y stock</p>
+            <h2 class="text-xl lg:text-2xl font-bold text-textmain">Inventario</h2>
+            <p class="text-textsec text-xs lg:text-sm">Gestiona tus productos y stock</p>
         </div>
         <div class="flex gap-3 w-full sm:w-auto">
 
             <p-autocomplete [(ngModel)]="selectedCategory" [suggestions]="filteredCategories"
                 (completeMethod)="filterCategories($event)" (onSelect)="filterProducts()" (onClear)="filterProducts()"
                 [dropdown]="true" optionLabel="name" [forceSelection]="true" placeholder="Filtrar por Categoría"
-                styleClass="w-full sm:w-60" inputStyleClass="w-full bg-gray-900 border-gray-700 text-white">
+                styleClass="w-full sm:w-60" inputStyleClass="w-full dark:bg-gray-900 border-gray-700 text-textmain">
 
                 <ng-template let-category pTemplate="item">
                     <span class="font-bold">{{ category.name }}</span>
@@ -33,32 +33,33 @@
                     <ng-template pTemplate="header">
                         <tr>
                             <th class="text-primary">SKU</th>
-                            <th class="text-gray-300">Categoría</th>
-                            <th class="text-gray-300">Producto</th>
-                            <th class="text-gray-300">Costo</th>
-                            <th class="text-gray-300">Precio Neto</th>
-                            <th class="text-gray-300">Precio + IVA</th>
-                            <th class="text-gray-300">Stock</th>
-                            <th class="text-gray-300">Acciones</th>
+                            <th class="text-textsec">Categoría</th>
+                            <th class="text-textsec">Producto</th>
+                            <th class="text-textsec">Costo</th>
+                            <th class="text-textsec">Precio Neto</th>
+                            <th class="text-textsec">Precio + IVA</th>
+                            <th class="text-textsec">Stock</th>
+                            <th class="text-textsec">Acciones</th>
                         </tr>
                     </ng-template>
 
                     <ng-template pTemplate="body" let-product>
-                        <tr class="border-b border-gray-800 hover:bg-gray-900 transition-colors">
+                        <tr
+                            class="border-b border-gray-200 dark:border-gray-800 hover:dark:bg-gray-900 transition-colors">
                             <td class="font-mono text-secondary">{{ product.sku }}</td>
                             <td>
                                 <p-tag [value]="product.categoryName || 'Sin Cat'" severity="info"
                                     styleClass="text-xs"></p-tag>
                             </td>
                             <td>
-                                <div class="font-bold text-white">{{ product.name }}</div>
+                                <div class="font-bold text-textmain">{{ product.name }}</div>
                                 <div class="text-xs text-gray-500 max-w-[150px] truncate">{{ product.description }}
                                 </div>
                             </td>
-                            <td class="text-gray-400 font-mono">
+                            <td class="text-textsec font-mono">
                                 {{ product.costPrice | currency:'CLP':'symbol-narrow':'1.0-0' }}
                             </td>
-                            <td class="text-gray-300">
+                            <td class="text-textsec">
                                 {{ product.priceNeto | currency:'CLP':'symbol-narrow':'1.0-0' }}
                             </td>
                             <td class="font-bold text-green-400">
@@ -96,15 +97,16 @@
 
         <div class="md:hidden space-y-3 pb-20">
 
-            <div *ngFor="let product of products" class="bg-cardbg p-4 rounded-lg border border-gray-800 shadow-md">
+            <div *ngFor="let product of products"
+                class="bg-cardbg p-4 rounded-lg border border-gray-200 dark:border-gray-800 shadow-md">
                 <div class="flex justify-between items-start mb-2">
                     <div>
                         <span
-                            class="text-xs font-mono text-primary bg-gray-900 px-2 py-1 rounded border border-gray-700">{{
+                            class="text-xs font-mono text-primary dark:bg-gray-900 px-2 py-1 rounded border border-gray-700">{{
                             product.sku }}</span>
-                        <h3 class="text-white font-bold mt-2 text-lg leading-tight">{{ product.name }}</h3>
+                        <h3 class="text-textmain font-bold mt-2 text-lg leading-tight">{{ product.name }}</h3>
                         <div class="flex items-center gap-2 mt-1">
-                            <span class="text-xs text-gray-400">{{ product.categoryName || 'Sin Categoría' }}</span>
+                            <span class="text-xs text-textsec">{{ product.categoryName || 'Sin Categoría' }}</span>
                             <span *ngIf="product.measurementUnit === 'KG'"
                                 class="text-[10px] bg-yellow-900/30 text-yellow-500 px-1 rounded">KG</span>
                         </div>
@@ -113,7 +115,7 @@
                         [severity]="product.stockCurrent <= product.stockMin ? 'danger' : 'success'"></p-tag>
                 </div>
 
-                <div class="flex justify-between items-center mt-3 border-t border-gray-800 pt-3">
+                <div class="flex justify-between items-center mt-3 border-t border-gray-200 dark:border-gray-800 pt-3">
                     <div class="flex flex-col">
                         <span class="text-xs text-gray-500">Precio Venta</span>
                         <span class="text-xl font-bold text-emerald-400">{{ getPriceWithTax(product) |

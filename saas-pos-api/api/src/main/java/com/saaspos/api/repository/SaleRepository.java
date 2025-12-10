@@ -24,17 +24,18 @@ public interface SaleRepository extends JpaRepository<Sale, UUID> {
 
     @Query(value = """
         SELECT COALESCE(SUM(
-            ( (si.unit_price / 1.19) - si.cost_price_at_sale ) * si.quantity
+            (si.net_price_at_sale - si.cost_price_at_sale) * si.quantity
         ), 0)
         FROM sale_items si
         JOIN sales s ON si.sale_id = s.id
         WHERE s.tenant_id = :tenantId 
-          AND s.created_at BETWEEN :startDate AND :endDate
+          -- Filtramos por fecha usando la conversión de zona horaria de la BD (más robusto si el server está en UTC)
+          AND CAST(s.created_at AT TIME ZONE 'America/Santiago' AS DATE) = :date
+          AND s.status = 'COMPLETED'
     """, nativeQuery = true)
-    BigDecimal calculateProfitByRange(
+    BigDecimal calculateRealProfit(
             @Param("tenantId") UUID tenantId,
-            @Param("startDate") LocalDateTime startDate,
-            @Param("endDate") LocalDateTime endDate
+            @Param("date") LocalDate date
     );
 
 }

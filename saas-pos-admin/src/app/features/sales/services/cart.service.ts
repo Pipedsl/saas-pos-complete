@@ -30,30 +30,39 @@ export class CartService {
         const currentItems = this.itemsSubject.value;
         const existingItem = currentItems.find(i => i.product.id === product.id);
 
-        // Cantidad total que tendríamos en el carrito
         const totalQtyInCart = (existingItem ? existingItem.quantity : 0) + qtyToAdd;
 
-        // 1. VALIDACIÓN DE STOCK
         if (totalQtyInCart > product.stockCurrent) {
-            return false; // Indica que falló por falta de stock
+            return false;
         }
 
-        const priceWithTax = product.priceNeto * (1 + (product.taxPercent || 19) / 100);
+        // --- CORRECCIÓN DE PRECIO ---
+        let finalUnitPrice: number;
+
+        // 1. Si el producto tiene un "Precio Final" definido (Nueva lógica), USARLO.
+        // Esto evita el error de recálculo (100 -> 84 -> 99.96).
+        if (product.priceFinal && product.priceFinal > 0) {
+            finalUnitPrice = product.priceFinal;
+        } else {
+            // 2. Fallback para productos antiguos o lógica manual: Calcular desde neto
+            const rawPrice = product.priceNeto * (1 + (product.taxPercent || 19) / 100);
+            finalUnitPrice = Math.round(rawPrice);
+        }
 
         if (existingItem) {
             existingItem.quantity += qtyToAdd;
-            existingItem.subtotal = Math.round(existingItem.quantity * existingItem.unitPrice);
+            existingItem.subtotal = existingItem.quantity * finalUnitPrice;
         } else {
             currentItems.push({
                 product: product,
                 quantity: qtyToAdd,
-                unitPrice: Math.round(priceWithTax),
-                subtotal: Math.round(priceWithTax * qtyToAdd)
+                unitPrice: finalUnitPrice,
+                subtotal: qtyToAdd * finalUnitPrice
             });
         }
 
         this.updateState(currentItems);
-        return true; // Éxito
+        return true;
     }
 
     // Nuevo: Disminuir cantidad (sin borrar todo)

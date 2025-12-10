@@ -1,10 +1,10 @@
 <div
     class="scanner-container bg-black rounded-lg overflow-hidden relative h-[300px] w-full flex items-center justify-center">
 
-    <div *ngIf="!hasDevices" class="text-white p-4 text-center absolute z-10">
+    <div *ngIf="!hasDevices" class="text-textmain p-4 text-center absolute z-10">
         <i class="pi pi-camera-slash text-2xl mb-2"></i>
         <p>Buscando cámara...</p>
-        <p class="text-xs text-gray-400">Asegúrate de dar permisos</p>
+        <p class="text-xs text-textsec">Asegúrate de dar permisos</p>
     </div>
 
     <zxing-scanner [formats]="allowedFormats" (scanSuccess)="onCodeResult($event)"
@@ -17,4 +17,4 @@
     </div>
 </div>
 
-<p class="text-center text-gray-400 text-xs mt-2">Apunta la cámara al código de barras</p>
+<p class="text-center text-textsec text-xs mt-2">Apunta la cámara al código de barras</p>

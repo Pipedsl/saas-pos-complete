@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
-import { Router, ActivatedRoute } from '@angular/router';
+import { Router, ActivatedRoute, RouterModule } from '@angular/router';
 
 // Servicios y Modelos
 import { ProductsService } from '../../../core/services/products.service';
@@ -20,7 +20,7 @@ import { BarcodeScannerComponent } from '../../../shared/components/barcode-scan
 
 @Component({
   selector: 'app-product-form',
-  imports: [CommonModule, ReactiveFormsModule, AutoCompleteModule, PrimeImportsModule, FormsModule, ConfirmDialogModule, BarcodeScannerComponent],
+  imports: [CommonModule, ReactiveFormsModule, AutoCompleteModule, PrimeImportsModule, FormsModule, ConfirmDialogModule, BarcodeScannerComponent, RouterModule],
   providers: [ConfirmationService],
   templateUrl: './product-form.html',
   styleUrl: './product-form.css',
@@ -76,16 +76,17 @@ export class ProductFormComponent implements OnInit {
       description: [''],
       selectedCategory: [null, Validators.required],
       selectedSupplier: [null], // Opcional por ahora
-      priceNeto: [0],
       measurementUnit: ['UNIT', Validators.required],
-      taxPercent: [19],
-      marginPercent: [0],
-      finalPrice: [0],
       stockCurrent: [0, [Validators.required, Validators.min(0)]],
       stockMin: [5],
-      costPrice: [0, [Validators.required, Validators.min(0)]],
 
-      // OJO: El AutoComplete guarda el OBJETO completo {id, name}, no solo el ID.
+      costPrice: [0, [Validators.required, Validators.min(0)]],
+      finalPrice: [0],
+      isTaxIncluded: [true], // Checkbox por defecto activado
+      taxPercent: [19],
+
+      priceNeto: [0],
+      marginPercent: [0],
 
     });
   }
@@ -124,17 +125,19 @@ export class ProductFormComponent implements OnInit {
           sku: product.sku,
           name: product.name,
           description: product.description,
-          costPrice: product.costPrice,
-          priceNeto: product.priceNeto,
-          taxPercent: product.taxPercent,
-          marginPercent: 0, // Opcional: Podrías recalcularlo con calculateMargin()
-
-          // ESTOS SON LOS QUE FALTABAN:
           stockCurrent: product.stockCurrent, // <--- Recuperar Stock
           stockMin: product.stockMin,
           measurementUnit: product.measurementUnit, // <--- Recuperar Tipo Venta (KG/UNIT)
 
-          finalPrice: this.getPriceWithTax(product) // Helper para visual
+          costPrice: product.costPrice,
+          taxPercent: product.taxPercent,
+
+          finalPrice: product.priceFinal, // Helper para visual
+          isTaxIncluded: product.isTaxIncluded,
+
+          priceNeto: product.priceNeto,
+          marginPercent: product.marginPercent,
+
         });
 
         // 2. Recuperar Categoría (Objeto completo para el Autocomplete)
@@ -143,6 +146,8 @@ export class ProductFormComponent implements OnInit {
             selectedCategory: { id: product.categoryId, name: product.categoryName }
           });
         }
+
+        this.calculateMath();
 
         if (product.supplierId && product.supplierName) {
           this.productForm.patchValue({
@@ -161,8 +166,6 @@ export class ProductFormComponent implements OnInit {
         // 4. Bloquear SKU en edición
         this.productForm.get('sku')?.disable();
 
-        // 5. Recalcular margen visualmente
-        this.calculateMargin();
       },
       error: (err) => {
         console.error(err);
@@ -238,45 +241,45 @@ export class ProductFormComponent implements OnInit {
     });
   }
 
-  calculateSellingPrice() {
-    const cost = this.productForm.get('costPrice')?.value ?? 0;
-    const margin = this.productForm.get('marginPercent')?.value ?? 0;
-    const tax = this.productForm.get('taxPercent')?.value ?? 19;
+  calculateMath() {
+    // 1. Obtener valores del formulario
+    const cost = this.productForm.get('costPrice')?.value || 0;
+    const finalPrice = this.productForm.get('finalPrice')?.value || 0;
+    const isTaxIncluded = this.productForm.get('isTaxIncluded')?.value;
+    const taxPercent = this.productForm.get('taxPercent')?.value || 19;
 
-    // 1. Calcular Precio Venta Neto (Costo + Ganancia)
-    // Fórmula: Costo * (1 + Margen%)
-    const saleNeto = cost * (1 + (margin / 100));
+    let neto = 0;
 
-    // 2. Calcular Precio Final (Neto + IVA)
-    const finalPrice = saleNeto * (1 + (tax / 100));
+    // 2. CALCULAR PRECIO NETO (Hacia atrás)
+    if (isTaxIncluded) {
+      // Si el precio final (ej: 1190) YA TIENE IVA, dividimos por 1.19
+      neto = finalPrice / (1 + (taxPercent / 100));
+    } else {
+      // Si NO tiene IVA, el precio final ES el neto
+      neto = finalPrice;
+    }
 
-    this.productForm.patchValue({
-      priceNeto: Math.round(saleNeto), // Guardamos el neto para el backend
-      finalPrice: Math.round(finalPrice) // Mostramos el final al usuario
-    }, { emitEvent: false });
-  }
-
-  calculateMargin() {
-    const finalPrice = this.productForm.get('finalPrice')?.value ?? 0;
-    const cost = this.productForm.get('costPrice')?.value ?? 0; // Ojo: costPrice
-    const tax = this.productForm.get('taxPercent')?.value ?? 19;
-
-    // 1. Desglosar IVA para obtener Precio Venta Neto
-    const saleNeto = finalPrice / (1 + (tax / 100));
-
-    // 2. Calcular Margen Real
+    // 3. CALCULAR MARGEN DE GANANCIA
     // Fórmula: ((VentaNeto - Costo) / Costo) * 100
     let margin = 0;
     if (cost > 0) {
-      margin = ((saleNeto - cost) / cost) * 100;
-    } else {
-      margin = 100; // Si costó 0 y lo vendo a algo, es 100% ganancia (o infinito)
+      margin = ((neto - cost) / cost) * 100;
+    } else if (neto > 0) {
+      margin = 100; // Si costó 0 y vendemos a algo, ganancia total
     }
 
+    // 4. Actualizar campos calculados (sin emitir evento para no buclear)
     this.productForm.patchValue({
-      priceNeto: Math.round(saleNeto), // Actualizamos el neto oculto
-      marginPercent: parseFloat(margin.toFixed(2))
+      priceNeto: Math.round(neto), // Guardamos entero
+      marginPercent: parseFloat(margin.toFixed(2)) // 2 decimales visuales
     }, { emitEvent: false });
+  }
+
+  // Helper para el click en el label "Incluye IVA"
+  toggleTax() {
+    const current = this.productForm.get('isTaxIncluded')?.value;
+    this.productForm.patchValue({ isTaxIncluded: !current });
+    this.calculateMath();
   }
 
   // GUARDAR CATEGORÍA RÁPIDA (Actualizado)
@@ -353,8 +356,13 @@ export class ProductFormComponent implements OnInit {
 
       // Precios y Stock
       costPrice: formValue.costPrice,
-      priceNeto: formValue.priceNeto,
+      priceFinal: formValue.finalPrice,
+      isTaxIncluded: formValue.isTaxIncluded,
       taxPercent: formValue.taxPercent,
+
+      priceNeto: formValue.priceNeto,
+
+
       stockCurrent: formValue.stockCurrent,
       stockMin: formValue.stockMin,
       measurementUnit: formValue.measurementUnit,

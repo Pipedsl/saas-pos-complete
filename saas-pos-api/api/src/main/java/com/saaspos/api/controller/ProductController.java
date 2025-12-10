@@ -9,6 +9,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -73,13 +74,13 @@ public class ProductController {
         product.setSku(dto.getSku());
         product.setName(dto.getName());
         product.setDescription(dto.getDescription());
-        product.setPriceNeto(dto.getPriceNeto());
-        product.setTaxPercent(dto.getTaxPercent() != null ? dto.getTaxPercent() : new BigDecimal("19.0"));
+        calculateProductPrices(product, dto);
         product.setStockCurrent(dto.getStockCurrent() != null ? dto.getStockCurrent() : BigDecimal.ZERO);
         product.setStockMin(dto.getStockMin() != null ? dto.getStockMin() : new BigDecimal("5"));
         product.setAttributes(dto.getAttributes()); //Guardar JSONB
-        product.setCostPrice(dto.getCostPrice() != null ? dto.getCostPrice() : BigDecimal.ZERO);
         product.setMeasurementUnit(dto.getMeasurementUnit() != null ? dto.getMeasurementUnit() : "UNIT");
+
+        product.setActive(true);
 
         if (dto.getCategoryId() != null) {
             Category cat = categoryRepository.findById(dto.getCategoryId())
@@ -147,11 +148,10 @@ public class ProductController {
         // Actualizar campos
         product.setName(dto.getName());
         product.setDescription(dto.getDescription());
-        product.setPriceNeto(dto.getPriceNeto());
-        product.setTaxPercent(dto.getTaxPercent());
         product.setStockCurrent(dto.getStockCurrent());
+        product.setStockMin(dto.getStockMin());
         product.setMeasurementUnit(dto.getMeasurementUnit());
-        product.setCostPrice(dto.getCostPrice() != null ? dto.getCostPrice() : BigDecimal.ZERO);
+        calculateProductPrices(product, dto);
 
         // Atributos y Categoría
         product.setAttributes(dto.getAttributes());
@@ -208,6 +208,37 @@ public class ProductController {
         return ResponseEntity.ok(lowStock);
     }
 
+    private void calculateProductPrices(Product product, ProductDto dto) {
+        // 1. Obtener valores seguros (evitar NullPointerException)
+        BigDecimal cost = dto.getCostPrice() != null ? dto.getCostPrice() : BigDecimal.ZERO;
+        BigDecimal inputPrice = dto.getPriceFinal() != null ? dto.getPriceFinal() : BigDecimal.ZERO;
+        // Por defecto el impuesto es 19% si no viene
+        BigDecimal taxPct = dto.getTaxPercent() != null ? dto.getTaxPercent() : new BigDecimal("19.0");
+        // Por defecto asumimos que incluye IVA si no se especifica
+        boolean hasTax = dto.getIsTaxIncluded() != null ? dto.getIsTaxIncluded() : true;
+
+        // 2. Asignar los valores directos a la entidad
+        product.setCostPrice(cost);
+        product.setPriceFinal(inputPrice);
+        product.setIsTaxIncluded(hasTax);
+        product.setTaxPercent(taxPct);
+
+        // 3. CALCULAR EL PRECIO NETO (La verdad contable)
+        BigDecimal priceNeto;
+
+        if (hasTax) {
+            // Factor 1.19
+            BigDecimal taxFactor = BigDecimal.ONE.add(taxPct.divide(new BigDecimal("100"), 4, RoundingMode.HALF_UP));
+
+            // CAMBIO AQUÍ: Usar escala 4 en la división (84.0336 en vez de 84)
+            priceNeto = inputPrice.divide(taxFactor, 4, RoundingMode.HALF_UP);
+        } else {
+            priceNeto = inputPrice;
+        }
+
+        product.setPriceNeto(priceNeto);
+    }
+
     private  UUID getCurrentTenantId(){
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = auth.getName();
@@ -228,13 +259,29 @@ public class ProductController {
         dto.setSku(p.getSku());
         dto.setName(p.getName());
         dto.setDescription(p.getDescription());
+
         dto.setPriceNeto(p.getPriceNeto());
         dto.setTaxPercent(p.getTaxPercent());
+        dto.setCostPrice(p.getCostPrice());
+
+        dto.setPriceFinal(p.getPriceFinal());
+        dto.setIsTaxIncluded(p.getIsTaxIncluded());
+
+        if (p.getCostPrice() != null && p.getCostPrice().compareTo(BigDecimal.ZERO) > 0) {
+            BigDecimal ganancia = p.getPriceNeto().subtract(p.getCostPrice());
+            BigDecimal margen = ganancia.divide(p.getCostPrice(), 4, RoundingMode.HALF_UP)
+                    .multiply(new BigDecimal("100"));
+            // Redondear a 2 decimales para que se vea bonito (ej: 33.50%)
+            dto.setMarginPercent(margen.setScale(2, RoundingMode.HALF_UP));
+        } else {
+            // Si el costo es 0, el margen es 100% (o infinito)
+            dto.setMarginPercent(new BigDecimal("100"));
+        }
+
         dto.setStockCurrent(p.getStockCurrent());
         dto.setStockMin(p.getStockMin());
         dto.setAttributes(p.getAttributes());
         dto.setMeasurementUnit(p.getMeasurementUnit());
-        dto.setCostPrice(p.getCostPrice());
         if (p.getCategory() != null) {
             dto.setCategoryId(p.getCategory().getId());
             dto.setCategoryName(p.getCategory().getName());

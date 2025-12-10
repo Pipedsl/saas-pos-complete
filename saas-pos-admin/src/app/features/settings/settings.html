@@ -1,89 +1,89 @@
 <p-toast position="top-center"></p-toast>
 <div class="p-4 lg:p-6 max-w-4xl mx-auto h-full overflow-y-auto">
-    <h2 class="text-2xl font-bold text-white mb-6">Configuración de Tienda</h2>
+    <h2 class="text-2xl font-bold text-textmain mb-6">Configuración de Tienda</h2>
 
     <div class="flex flex-col gap-6">
 
-        <p-card header="Información del Negocio" styleClass="bg-cardbg border-none shadow-lg text-white">
+        <p-card header="Información del Negocio" styleClass="bg-cardbg border-none shadow-lg text-textmain">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="flex flex-col gap-2">
-                    <label class="text-gray-400 text-sm">Nombre de Fantasía</label>
+                    <label class="text-textsec text-sm">Nombre de Fantasía</label>
                     <input pInputText [(ngModel)]="settings.shopName" placeholder="Ej: Minimarket Don Pepe"
-                        class="bg-gray-900 border-gray-700 text-white w-full" />
+                        class="dark:bg-gray-900 border-gray-700 text-textmain w-full" />
                 </div>
                 <div class="flex flex-col gap-2">
-                    <label class="text-gray-400 text-sm">RUT Empresa</label>
+                    <label class="text-textsec text-sm">RUT Empresa</label>
                     <input pInputText [(ngModel)]="settings.shopRut" placeholder="76.xxx.xxx-x"
-                        class="bg-gray-900 border-gray-700 text-white w-full" />
+                        class="dark:bg-gray-900 border-gray-700 text-textmain w-full" />
                 </div>
                 <div class="flex flex-col gap-2 col-span-full">
-                    <label class="text-gray-400 text-sm">Dirección / Sucursal</label>
+                    <label class="text-textsec text-sm">Dirección / Sucursal</label>
                     <input pInputText [(ngModel)]="settings.shopAddress" placeholder="Av. Siempre Viva 123"
-                        class="bg-gray-900 border-gray-700 text-white w-full" />
+                        class="dark:bg-gray-900 border-gray-700 text-textmain w-full" />
                 </div>
             </div>
         </p-card>
 
-        <p-card header="Configuración de Impresión" styleClass="bg-cardbg border-none shadow-lg text-white">
+        <p-card header="Configuración de Impresión" styleClass="bg-cardbg border-none shadow-lg text-textmain">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
                 <div class="flex flex-col gap-2">
-                    <label class="text-gray-400 text-sm">Tamaño de Papel</label>
+                    <label class="text-textsec text-sm">Tamaño de Papel</label>
                     <div class="flex gap-4">
                         <div class="flex align-items-center">
                             <input type="radio" name="paper" value="58mm" [(ngModel)]="settings.printerType"
                                 class="accent-primary w-4 h-4">
-                            <label class="ml-2 text-gray-300">Térmica 58mm</label>
+                            <label class="ml-2 text-textsec">Térmica 58mm</label>
                         </div>
                         <div class="flex align-items-center">
                             <input type="radio" name="paper" value="80mm" [(ngModel)]="settings.printerType"
                                 class="accent-primary w-4 h-4">
-                            <label class="ml-2 text-gray-300">Térmica 80mm</label>
+                            <label class="ml-2 text-textsec">Térmica 80mm</label>
                         </div>
                         <div class="flex align-items-center">
                             <input type="radio" name="paper" value="LETTER" [(ngModel)]="settings.printerType"
                                 class="accent-primary w-4 h-4">
-                            <label class="ml-2 text-gray-300">Carta / A4</label>
+                            <label class="ml-2 text-textsec">Carta / A4</label>
                         </div>
                     </div>
                 </div>
 
                 <div class="flex flex-col gap-2">
-                    <label class="text-gray-400 text-sm">Prefijo de Ticket</label>
+                    <label class="text-textsec text-sm">Prefijo de Ticket</label>
                     <input pInputText [(ngModel)]="settings.ticketPrefix" placeholder="Ej: TCK-"
-                        class="bg-gray-900 border-gray-700 text-white w-full" />
+                        class="dark:bg-gray-900 border-gray-700 text-textmain w-full" />
                 </div>
 
                 <div class="flex flex-col gap-2 col-span-full">
-                    <label class="text-gray-400 text-sm">Mensaje Pie de Página</label>
+                    <label class="text-textsec text-sm">Mensaje Pie de Página</label>
                     <input pInputText [(ngModel)]="settings.footerMessage"
                         placeholder="Ej: ¡Gracias por su preferencia!"
-                        class="bg-gray-900 border-gray-700 text-white w-full" />
+                        class="dark:bg-gray-900 border-gray-700 text-textmain w-full" />
                 </div>
             </div>
         </p-card>
 
-        <p-card header="Datos Bancarios" styleClass="bg-cardbg border-none shadow-lg text-white">
+        <p-card header="Datos Bancarios" styleClass="bg-cardbg border-none shadow-lg text-textmain">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div class="flex flex-col gap-2">
-                    <label class="text-gray-400 text-sm">Banco</label>
+                    <label class="text-textsec text-sm">Banco</label>
                     <input pInputText [(ngModel)]="settings.bankName"
-                        class="bg-gray-900 border-gray-700 text-white w-full" />
+                        class="dark:bg-gray-900 border-gray-700 text-textmain w-full" />
                 </div>
                 <div class="flex flex-col gap-2">
-                    <label class="text-gray-400 text-sm">Tipo de Cuenta</label>
+                    <label class="text-textsec text-sm">Tipo de Cuenta</label>
                     <input pInputText [(ngModel)]="settings.accountType"
-                        class="bg-gray-900 border-gray-700 text-white w-full" />
+                        class="dark:bg-gray-900 border-gray-700 text-textmain w-full" />
                 </div>
                 <div class="flex flex-col gap-2">
-                    <label class="text-gray-400 text-sm">Número</label>
+                    <label class="text-textsec text-sm">Número</label>
                     <input pInputText [(ngModel)]="settings.accountNumber"
-                        class="bg-gray-900 border-gray-700 text-white w-full" />
+                        class="dark:bg-gray-900 border-gray-700 text-textmain w-full" />
                 </div>
                 <div class="flex flex-col gap-2">
-                    <label class="text-gray-400 text-sm">RUT / Email</label>
+                    <label class="text-textsec text-sm">RUT / Email</label>
                     <input pInputText [(ngModel)]="settings.email"
-                        class="bg-gray-900 border-gray-700 text-white w-full" />
+                        class="dark:bg-gray-900 border-gray-700 text-textmain w-full" />
                 </div>
             </div>
         </p-card>

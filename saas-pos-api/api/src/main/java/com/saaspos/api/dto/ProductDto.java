@@ -15,22 +15,12 @@ public class ProductDto {
 
     @NotBlank(message = "El SKU es obligatorio")
     private String sku;
-
     @NotBlank(message = "El nombre es obligatorio")
     private String name;
-
     private String description;
-
-    @NotNull(message = "El precio es obligatorio")
-    @Min(value = 0, message = "El precio no puede ser negativo")
-    private BigDecimal priceNeto;
-
-    private String measurementUnit;
-
-    private BigDecimal taxPercent;
     private BigDecimal stockCurrent;
     private BigDecimal stockMin;
-
+    private String measurementUnit;
     //Aqui recibimos el JSON dinámico del frontend
     private Map<String, Object> attributes;
 
@@ -39,7 +29,20 @@ public class ProductDto {
 
     private UUID supplierId;       // <--- Nuevo
     private String supplierName; // Salida (Output para la tabla)
-    private BigDecimal costPrice;  // <--- Nuevo
-    private BigDecimal marginPercent; // <--- Nuevo (Ej: 30.0 para 30%)
+
+    private BigDecimal costPrice;      // Input
+    private BigDecimal priceFinal;     // Input
+    private Boolean isTaxIncluded;     // Input (Checkbox)
+
+    private BigDecimal priceNeto;      // Output (Calculado)
+    private BigDecimal taxPercent;     // Input/Output
+    private BigDecimal marginPercent;  // Output (Calculado para mostrar ganancia)
+
+
+
+
+
+
+
 
 }

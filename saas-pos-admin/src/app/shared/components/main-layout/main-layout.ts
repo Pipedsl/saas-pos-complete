@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { Router, RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { CommonModule } from '@angular/common';
+import { ThemeService } from '../../../core/services/theme.service';
 
 @Component({
   selector: 'app-main-layout',
@@ -12,7 +13,7 @@ import { CommonModule } from '@angular/common';
 export class MainLayoutComponent implements OnInit {
   isMobileMenuOpen: boolean = false;
   currentUser: any = {};
-  constructor(public authService: AuthService, private router: Router) { }
+  constructor(public authService: AuthService, private router: Router, public themeService: ThemeService) { }
 
   ngOnInit() {
     this.currentUser = this.authService.getCurrentUser();
