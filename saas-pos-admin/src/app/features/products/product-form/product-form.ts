@@ -334,7 +334,12 @@ export class ProductFormComponent implements OnInit {
   }
 
   onSubmit() {
-    if (this.productForm.invalid) return;
+    if (this.productForm.invalid) {
+      this.productForm.markAllAsTouched(); // <--- ESTA ES LA CLAVE
+      // Opcional: Mostrar un mensaje general
+      // this.messageService.add({severity:'error', summary:'Error', detail:'Completa los campos obligatorios'});
+      return;
+    };
     this.loading = true;
 
     // IMPORTANTE: Usamos getRawValue() para obtener el SKU aunque esté deshabilitado (disabled)

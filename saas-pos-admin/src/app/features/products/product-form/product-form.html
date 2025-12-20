@@ -20,6 +20,10 @@
                             </div>
                         </ng-template>
                     </p-autocomplete>
+                    <small class="text-red-500"
+                        *ngIf="productForm.get('sku')?.invalid && productForm.get('sku')?.touched">
+                        El SKU es obligatorio.
+                    </small>
                     <button pButton type="button" icon="pi pi-camera" (click)="showScanner = true"
                         class="p-button-outlined p-button-secondary shrink-0" pTooltip="Escanear Código"></button>
                 </div>
@@ -34,6 +38,10 @@
                     <label class="text-textsec">Nombre</label>
                     <input pInputText formControlName="name"
                         class="w-full dark:bg-gray-900 border-gray-700 text-textmain" />
+                    <small class="text-red-500"
+                        *ngIf="productForm.get('name')?.invalid && productForm.get('name')?.touched">
+                        El nombre del producto es obligatorio.
+                    </small>
                 </div>
 
                 <div
@@ -58,8 +66,12 @@
                                 inputStyleClass="w-full dark:bg-gray-900 border-gray-700 text-textmain">
                             </p-autocomplete>
                             <button pButton type="button" icon="pi pi-plus" (click)="showCategoryDialog = true"
-                                class="p-button-outlined p-button-secondary flex-shrink-0"></button>
+                                class="p-button-outlined p-button-secondary shrink-0"></button>
                         </div>
+                        <small class="text-red-500"
+                            *ngIf="productForm.get('selectedCategory')?.invalid && productForm.get('selectedCategory')?.touched">
+                            Debes seleccionar una categoría.
+                        </small>
                     </div>
 
                     <div class="flex flex-col gap-2 w-full">
@@ -71,7 +83,7 @@
                                 inputStyleClass="w-full dark:bg-gray-900 border-gray-700 text-textmain">
                             </p-autocomplete>
                             <button pButton type="button" icon="pi pi-plus" (click)="showSupplierDialog = true"
-                                class="p-button-outlined p-button-secondary flex-shrink-0"></button>
+                                class="p-button-outlined p-button-secondary shrink-0"></button>
                         </div>
                     </div>
                 </div>
@@ -82,6 +94,10 @@
                         [minFractionDigits]="0" [maxFractionDigits]="3" locale="es-CL" styleClass="w-full"
                         inputStyleClass="dark:bg-gray-900 border-gray-700 text-textmain w-full">
                     </p-inputNumber>
+                    <small class="text-red-500"
+                        *ngIf="productForm.get('stockCurrent')?.invalid && productForm.get('stockCurrent')?.touched">
+                        Requerido (Mínimo 0).
+                    </small>
                 </div>
 
                 <div class="flex flex-col gap-2 w-full">
@@ -125,6 +141,10 @@
                                 (onInput)="calculateMath()" styleClass="w-full"
                                 inputStyleClass="dark:bg-gray-950 text-white border-gray-600 text-lg font-bold w-full">
                             </p-inputNumber>
+                            <small class="text-red-500 text-xs"
+                                *ngIf="productForm.get('costPrice')?.invalid && productForm.get('costPrice')?.touched">
+                                El costo es obligatorio.
+                            </small>
                         </div>
 
                         <div class="flex flex-col gap-1">
@@ -133,6 +153,10 @@
                                 (onInput)="calculateMath()" styleClass="w-full"
                                 inputStyleClass="dark:bg-gray-950 text-emerald-400 text-3xl font-black border-emerald-500/50 h-16 w-full text-center">
                             </p-inputNumber>
+                            <small class="text-red-500 text-xs"
+                                *ngIf="productForm.get('finalPrice')?.invalid && productForm.get('finalPrice')?.touched">
+                                El precio de venta es obligatorio.
+                            </small>
                         </div>
 
                         <div

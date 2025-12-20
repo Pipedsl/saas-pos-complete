@@ -7,8 +7,7 @@
             'flex': mobileView === 'CATALOG'
          }">
 
-        <div
-            class="bg-cardbg p-3 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 flex gap-3 flex-shrink-0">
+        <div class="bg-cardbg p-3 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 flex gap-3 shrink-0">
             <button (click)="showScanner = true"
                 class="dark:bg-gray-800 text-textmain px-4 rounded-lg border border-gray-700 hover:bg-gray-700 transition-colors flex items-center justify-center">
                 <i class="pi pi-camera text-xl"></i>
@@ -71,7 +70,7 @@
                         <span *ngIf="p.measurementUnit === 'KG'"
                             class="text-[9px] bg-yellow-900/30 text-yellow-500 px-1 rounded">KG</span>
                         <p class="text-lg font-bold text-emerald-400">
-                            {{ getPriceWithTax(p) | currency:'CLP':'symbol-narrow':'1.0-0' }}
+                            {{ getPrice(p) | currency:'CLP':'symbol-narrow':'1.0-0' }}
                         </p>
                     </div>
                 </div>
@@ -79,14 +78,14 @@
         </div>
     </div>
 
-    <div class="bg-white rounded-xl shadow-2xl flex flex-col h-full border border-gray-200 overflow-hidden lg:order-2 transition-all duration-300 w-full lg:w-[35%] flex-shrink-0 lg:min-w-[380px]"
+    <div class="bg-white rounded-xl shadow-2xl flex flex-col h-full border border-gray-200 overflow-hidden lg:order-2 transition-all duration-300 w-full lg:w-[35%] shrink-0 lg:min-w-[380px]"
         [ngClass]="{
             'hidden lg:flex': mobileView === 'CATALOG', 
             'flex': mobileView === 'CART'
          }">
 
         <div
-            class="dark:bg-gray-900 p-3 text-textmain flex justify-between items-center border-b border-gray-200 dark:border-gray-800 flex-shrink-0">
+            class="dark:bg-gray-900 p-3 text-textmain flex justify-between items-center border-b border-gray-200 dark:border-gray-800 shrink-0">
             <div class="flex items-center gap-2">
                 <button (click)="toggleMobileView()" class="lg:hidden text-textsec hover:text-textmain mr-2">
                     <i class="pi pi-arrow-left text-xl"></i>
@@ -119,14 +118,14 @@
                             <button (click)="decreaseItem(item.product.id)"
                                 class="w-8 h-full text-red-500 hover:bg-red-50 font-bold flex items-center justify-center transition-colors">-</button>
                             <span
-                                class="px-2 font-mono font-black text-sm text-gray-900 bg-gray-50 border-x border-gray-200 h-full flex items-center justify-center min-w-[3rem]">
+                                class="px-2 font-mono font-black text-sm text-gray-900 bg-gray-50 border-x border-gray-200 h-full flex items-center justify-center min-w-12">
                                 {{ item.quantity | number:'1.0-3' }}
                             </span>
                             <button (click)="increaseItem(item)"
                                 class="w-8 h-full text-green-600 hover:bg-green-50 font-bold flex items-center justify-center transition-colors">+</button>
                         </div>
 
-                        <div class="font-bold text-gray-900 text-sm min-w-[4rem] text-right">
+                        <div class="font-bold text-gray-900 text-sm min-w-16 text-right">
                             {{ item.subtotal | currency:'CLP':'symbol-narrow':'1.0-0' }}
                         </div>
 
@@ -149,7 +148,7 @@
 
         </div>
 
-        <div class="bg-white p-4 border-t border-gray-200 flex-shrink-0 z-10 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+        <div class="bg-white p-4 border-t border-gray-200 shrink-0 z-10 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
             <div class="flex justify-between items-end mb-3">
                 <span class="text-gray-500 text-sm font-bold uppercase tracking-wide">Total a Pagar</span>
                 <span class="text-4xl font-black text-gray-900">
@@ -213,13 +212,13 @@
                 Cantidad ({{ selectedProduct.measurementUnit === 'KG' ? 'Kilos' : 'Unidades' }})
             </label>
 
-            <p-inputNumber #qtyInput [(ngModel)]="qtyToAdd" [min]="selectedProduct?.measurementUnit === 'KG' ? 0.05 : 1"
+            <p-inputNumber #qtyInput [(ngModel)]="qtyToAdd" [min]="selectedProduct.measurementUnit === 'KG' ? 0.05 : 1"
                 [max]="selectedProduct.stockCurrent" [showButtons]="true" buttonLayout="horizontal"
-                spinnerMode="horizontal" [step]="selectedProduct?.measurementUnit === 'KG' ? 0.1 : 1"
+                spinnerMode="horizontal" [step]="selectedProduct.measurementUnit === 'KG' ? 0.1 : 1"
                 decrementButtonClass="p-button-danger" incrementButtonClass="p-button-success"
                 incrementButtonIcon="pi pi-plus" decrementButtonIcon="pi pi-minus" locale="en-US"
-                [minFractionDigits]="selectedProduct?.measurementUnit === 'KG' ? 3 : 0"
-                [maxFractionDigits]="selectedProduct?.measurementUnit === 'KG' ? 3 : 0" [useGrouping]="false"
+                [minFractionDigits]="selectedProduct.measurementUnit === 'KG' ? 3 : 0"
+                [maxFractionDigits]="selectedProduct.measurementUnit === 'KG' ? 3 : 0" [useGrouping]="false"
                 inputStyleClass="text-center text-4xl font-bold dark:bg-gray-900 text-textmain border-gray-700 w-full h-16 focus:ring-0"
                 styleClass="w-full" (keydown.enter)="confirmAddToCart()">
             </p-inputNumber>
@@ -228,7 +227,7 @@
         <div class="flex justify-between items-center dark:bg-gray-800 p-4 rounded-lg border border-gray-700">
             <span class="text-textsec">Subtotal:</span>
             <span class="text-2xl font-bold text-emerald-400">
-                {{ (getPriceWithTax(selectedProduct) * qtyToAdd) | currency:'CLP':'symbol-narrow':'1.0-0' }}
+                {{ (getPrice(selectedProduct) * qtyToAdd) | currency:'CLP':'symbol-narrow':'1.0-0' }}
             </span>
         </div>
 
@@ -326,44 +325,3 @@
         </button>
     </div>
 </p-dialog>
-
-<!-- <div #ticketContent *ngIf="lastSaleTicket" style="display: none;">
-
-    <div class="text-center font-bold text-sm mb-2">
-        <h3>MI NEGOCIO</h3>
-        <p>RUT: 76.xxx.xxx-x</p>
-        <p>Ticket #{{ lastSaleTicket.saleNumber }}</p>
-        <p>{{ lastSaleTicket.createdAt | date:'dd/MM/yy HH:mm' }}</p>
-    </div>
-
-    <hr style="border-top: 1px dashed black; margin: 5px 0;" />
-
-    <div *ngFor="let item of lastSaleTicket.items" class="flex justify-between text-xs mb-1"
-        style="display: flex; justify-content: space-between; margin-bottom: 4px;">
-        <span>{{ item.quantity }} x {{ item.product.name | slice:0:15 }}</span>
-        <span>{{ item.subtotal | currency:'CLP':'$':'1.0-0' }}</span>
-    </div>
-
-    <hr style="border-top: 1px dashed black; margin: 5px 0;" />
-
-    <div class="flex justify-between font-bold text-sm"
-        style="display: flex; justify-content: space-between; font-weight: bold;">
-        <span>TOTAL</span>
-        <span>{{ lastSaleTicket.total | currency:'CLP':'$':'1.0-0' }}</span>
-    </div>
-
-    <div *ngIf="lastSaleTicket.paymentMethod === 'CASH'" style="margin-top: 4px;">
-        <div class="flex justify-between text-xs" style="display: flex; justify-content: space-between;">
-            <span>Efectivo</span>
-            <span>{{ (lastSaleTicket.total + lastSaleTicket.change) | currency:'CLP':'$':'1.0-0' }}</span>
-        </div>
-        <div class="flex justify-between text-xs" style="display: flex; justify-content: space-between;">
-            <span>Vuelto</span>
-            <span>{{ lastSaleTicket.change | currency:'CLP':'$':'1.0-0' }}</span>
-        </div>
-    </div>
-
-    <div class="text-center text-[10px] mt-4" style="text-align: center; margin-top: 10px; font-size: 10px;">
-        <p>¡Gracias por su compra!</p>
-    </div>
-</div> -->

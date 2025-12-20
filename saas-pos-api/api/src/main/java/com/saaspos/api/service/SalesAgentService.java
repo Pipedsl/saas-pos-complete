@@ -26,31 +26,30 @@ public class SalesAgentService {
     public DemoLink generateDemoLink() {
         User agent = getCurrentUser();
 
-        // 1. Validar Rol
+        // 1. Validar Permisos (Roles)
         if (!agent.getRole().contains("ADMIN") && !agent.getRole().equals("VENDOR")) {
             throw new RuntimeException("No tienes permisos para generar links.");
         }
 
-        // 2. VALIDAR LÍMITE MENSUAL (DESCOMENTADO Y MEJORADO)
-        // Calculamos el primer día del mes actual (ej: 1 de Diciembre 00:00)
-        LocalDateTime startOfMonth = LocalDate.now().withDayOfMonth(1).atStartOfDay();
+        // 2. VALIDAR LÍMITE (SOLO SI NO ES SUPER ADMIN)
+        // Agregamos esta condición: Si es SUPER_ADMIN, se salta este bloque
+        if (!"SUPER_ADMIN".equals(agent.getRole())) {
 
-        // Contamos cuántos links ha hecho este agente este mes
-        long linksCreated = demoLinkRepository.countByAgentIdAndCreatedAtAfter(agent.getId(), startOfMonth);
+            LocalDateTime startOfMonth = LocalDate.now().withDayOfMonth(1).atStartOfDay();
+            long linksCreated = demoLinkRepository.countByAgentIdAndCreatedAtAfter(agent.getId(), startOfMonth);
 
-        // Verificamos el límite (si es null, asumimos infinito o ponemos un default como 10)
-        int limit = agent.getLinkLimitMonthly() != null ? agent.getLinkLimitMonthly() : 10;
+            // Límite por defecto 10 si no está definido
+            int limit = agent.getLinkLimitMonthly() != null ? agent.getLinkLimitMonthly() : 10;
 
-        if (linksCreated >= limit) {
-            throw new RuntimeException("Has alcanzado tu límite de " + limit + " demos este mes. Contacta al Super Admin.");
+            if (linksCreated >= limit) {
+                throw new RuntimeException("Has alcanzado tu límite de " + limit + " demos este mes.");
+            }
         }
 
         // 3. Crear el Link
         DemoLink link = new DemoLink();
         link.setAgent(agent);
-        // Generamos un token limpio (sin guiones)
         link.setToken(UUID.randomUUID().toString().replace("-", ""));
-        // El link es válido por 30 días para ser activado
         link.setExpiresAt(LocalDateTime.now().plusDays(30));
         link.setUsed(false);
 

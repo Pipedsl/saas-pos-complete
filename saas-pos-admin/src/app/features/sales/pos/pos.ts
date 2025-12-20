@@ -404,8 +404,12 @@ export class PosComponent implements OnInit {
   }
 
   // Helpers
-  getPriceWithTax(p: Product): number {
-    return p.priceNeto * (1 + (p.taxPercent || 19) / 100);
+  getPrice(p: Product): number {
+    if (p.isTaxIncluded) {
+      return p.priceNeto * (1 + (p.taxPercent || 19) / 100);
+    } else {
+      return p.priceNeto;
+    }
   }
 
   showError(summary: string, detail: string) {
