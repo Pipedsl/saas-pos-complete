@@ -3,7 +3,6 @@ export interface Product {
     sku: string;
     name: string;
     description?: string;
-    imageUrl?: string;
 
     priceNeto: number;      // El valor base (calculado)
     costPrice: number;      // Costo de compra
