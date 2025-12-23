@@ -33,8 +33,9 @@ export class ProductsService {
         return this.http.put<Product>(`${this.apiUrl}/${id}`, product);
     }
 
-    deleteProduct(id: string): Observable<void> {
-        return this.http.delete<void>(`${this.apiUrl}/${id}`);
+    deleteProduct(id: string, force: boolean = false): Observable<any> {
+        // Pasamos el query param ?force=true si el usuario elige borrar todo
+        return this.http.delete(`${this.apiUrl}/${id}?force=${force}`);
     }
 
     searchProducts(query: string): Observable<Product[]> {

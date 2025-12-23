@@ -34,6 +34,7 @@
     "@zxing/browser": "^0.1.5",
     "@zxing/library": "^0.21.3",
     "@zxing/ngx-scanner": "^20.0.0",
+    "firebase": "^12.7.0",
     "postcss": "^8.5.6",
     "primeicons": "^7.0.0",
     "primeng": "^20.3.0",

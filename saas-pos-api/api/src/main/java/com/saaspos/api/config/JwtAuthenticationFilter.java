@@ -51,8 +51,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         // 4. Extraer el email del token
         try {
             userEmail = jwtUtil.extractUsername(jwt);
+            System.out.println("JWT email: " + userEmail);
         } catch (Exception e) {
             // Si el token está corrupto, seguimos sin autenticar
+            System.out.println("Error extrayendo username del JWT: " + e.getMessage());
             filterChain.doFilter(request, response);
             return;
         }
@@ -65,6 +67,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // 6. Validar token
             if (jwtUtil.validateToken(jwt, userDetails.getUsername())) {
                 // Crear objeto de autenticación
+                System.out.println("JWT válido para: " + userDetails.getUsername());
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
                         userDetails,
                         null,
@@ -74,6 +77,8 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 // 7. ESTABLECER LA SEGURIDAD (Aquí es donde Spring se entera de que estás logueado)
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+            } else {
+                System.out.println("JWT inválido");
             }
         }
 

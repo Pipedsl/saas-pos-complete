@@ -81,4 +81,7 @@ public class Product {
     @Transient
     private BigDecimal calculatedMargin;
 
+    @Column(name = "image_url")
+    private String imageUrl;
+
 }

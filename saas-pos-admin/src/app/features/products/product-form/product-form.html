@@ -33,6 +33,39 @@
                             (scanSuccess)="handleScan($event)"></app-barcode-scanner>
                     </div>
                 </p-dialog>
+                <div class="col-span-1 lg:col-span-12 flex flex-col gap-2 mb-4">
+                    <label class="text-textsec font-bold">Imagen del Producto</label>
+
+                    <div class="flex items-center gap-4">
+                        <div
+                            class="w-24 h-24 rounded-lg border border-gray-700 bg-darkbg overflow-hidden flex items-center justify-center relative">
+
+                            <img *ngIf="productForm.get('imageUrl')?.value" [src]="productForm.get('imageUrl')?.value"
+                                class="w-full h-full object-cover">
+
+                            <i *ngIf="!productForm.get('imageUrl')?.value && !uploadingImage"
+                                class="pi pi-image text-2xl text-gray-500"></i>
+
+                            <i *ngIf="uploadingImage" class="pi pi-spin pi-spinner text-2xl text-primary absolute"></i>
+                        </div>
+
+                        <div>
+                            <input #fileInput type="file" (change)="onFileSelected($event)" accept="image/*"
+                                class="hidden">
+
+                            <button pButton type="button" label="Subir Foto" icon="pi pi-upload"
+                                class="p-button-outlined p-button-secondary p-button-sm" (click)="fileInput.click()"
+                                [disabled]="uploadingImage">
+                            </button>
+
+                            <p class="text-xs text-textsec mt-1">
+                                Se convertirá automáticamente a formato ligero (WebP).
+                            </p>
+                        </div>
+                    </div>
+
+                    <input type="hidden" formControlName="imageUrl">
+                </div>
 
                 <div class="flex flex-col gap-2 w-full">
                     <label class="text-textsec">Nombre</label>

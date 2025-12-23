@@ -37,6 +37,7 @@ public class ProductDto {
     private BigDecimal priceNeto;      // Output (Calculado)
     private BigDecimal taxPercent;     // Input/Output
     private BigDecimal marginPercent;  // Output (Calculado para mostrar ganancia)
+    private String imageUrl;
 
 
 
