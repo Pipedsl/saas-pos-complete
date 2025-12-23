@@ -3,6 +3,7 @@ package com.saaspos.api.controller;
 import com.saaspos.api.dto.ProductDto;
 import com.saaspos.api.model.*;
 import com.saaspos.api.repository.*;
+import jakarta.transaction.Transactional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -23,13 +24,15 @@ public class ProductController {
     private final TenantRepository tenantRepository;
     private final CategoryRepository categoryRepository;
     private final SupplierRepository supplierRepository;
+    private final SaleItemRepository saleItemRepository;
 
-    public ProductController(ProductRepository productRepository, UserRepository userRepository, TenantRepository tenantRepository, CategoryRepository categoryRepository, SupplierRepository supplierRepository) {
+    public ProductController(ProductRepository productRepository, UserRepository userRepository, TenantRepository tenantRepository, CategoryRepository categoryRepository, SupplierRepository supplierRepository, SaleItemRepository saleItemRepository) {
         this.productRepository = productRepository;
         this.userRepository = userRepository;
         this.tenantRepository = tenantRepository;
         this.categoryRepository = categoryRepository;
         this.supplierRepository = supplierRepository;
+        this.saleItemRepository = saleItemRepository;
     }
 
     //GET: Listar mis productos
@@ -79,6 +82,7 @@ public class ProductController {
         product.setStockMin(dto.getStockMin() != null ? dto.getStockMin() : new BigDecimal("5"));
         product.setAttributes(dto.getAttributes()); //Guardar JSONB
         product.setMeasurementUnit(dto.getMeasurementUnit() != null ? dto.getMeasurementUnit() : "UNIT");
+        product.setImageUrl(dto.getImageUrl());
 
         product.setActive(true);
 
@@ -152,6 +156,7 @@ public class ProductController {
         product.setStockMin(dto.getStockMin());
         product.setMeasurementUnit(dto.getMeasurementUnit());
         calculateProductPrices(product, dto);
+        product.setImageUrl(dto.getImageUrl());
 
         // Atributos y Categoría
         product.setAttributes(dto.getAttributes());
@@ -182,7 +187,10 @@ public class ProductController {
 
     // 4. Eliminar Producto (DELETE)
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteProduct(@PathVariable UUID id) {
+    @Transactional // Importante para que el borrado sea atómico
+    public ResponseEntity<?> deleteProduct(@PathVariable UUID id,
+                                           @RequestParam(defaultValue = "false") boolean force) {
+
         UUID tenantId = getCurrentTenantId();
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
@@ -191,8 +199,21 @@ public class ProductController {
             return ResponseEntity.status(403).body("No tienes permiso");
         }
 
-        productRepository.delete(product);
-        return ResponseEntity.ok().build();
+        if (force) {
+            // --- HARD DELETE (Destructivo) ---
+            // 1. Borrar historial de items de venta de este producto
+            saleItemRepository.deleteByProductId(id);
+
+            // 2. Borrar el producto físicamente
+            productRepository.delete(product);
+
+            return ResponseEntity.ok().body("{\"message\": \"Producto y su historial eliminados definitivamente.\"}");
+        } else {
+            // --- SOFT DELETE (Archivar) ---
+            product.setActive(false);
+            productRepository.save(product);
+            return ResponseEntity.ok().body("{\"message\": \"Producto archivado correctamente.\"}");
+        }
     }
 
     @GetMapping("/low-stock")
@@ -282,6 +303,7 @@ public class ProductController {
         dto.setStockMin(p.getStockMin());
         dto.setAttributes(p.getAttributes());
         dto.setMeasurementUnit(p.getMeasurementUnit());
+        dto.setImageUrl(p.getImageUrl());
         if (p.getCategory() != null) {
             dto.setCategoryId(p.getCategory().getId());
             dto.setCategoryName(p.getCategory().getName());

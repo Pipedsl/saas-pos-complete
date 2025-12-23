@@ -32,6 +32,7 @@
 
                     <ng-template pTemplate="header">
                         <tr>
+                            <th class="w-16">Foto</th>
                             <th class="text-primary">SKU</th>
                             <th class="text-textsec">Categoría</th>
                             <th class="text-textsec">Producto</th>
@@ -46,6 +47,13 @@
                     <ng-template pTemplate="body" let-product>
                         <tr
                             class="border-b border-gray-200 dark:border-gray-800 hover:dark:bg-gray-900 transition-colors">
+                            <td>
+                                <div
+                                    class="w-30 h-30 rounded overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                                    <img [src]="product.imageUrl ? product.imageUrl : 'https://placehold.co/100x100/f3f4f6/9ca3af?text=No+Img'"
+                                        class="w-full h-full object-cover" alt="Prod">
+                                </div>
+                            </td>
                             <td class="font-mono text-secondary">{{ product.sku }}</td>
                             <td>
                                 <p-tag [value]="product.categoryName || 'Sin Cat'" severity="info"
@@ -144,5 +152,41 @@
     </div>
 </div>
 
-<p-confirmDialog></p-confirmDialog>
+<p-dialog header="Eliminar Producto" [(visible)]="showDeleteDialog" [modal]="true" [style]="{width: '450px'}"
+    styleClass="bg-cardbg text-textmain border border-gray-200 dark:border-gray-800">
+
+    <div class="flex flex-col gap-4 py-4" *ngIf="productToDelete">
+        <div class="flex items-center gap-3 bg-yellow-500/10 p-3 rounded border border-yellow-500/30">
+            <i class="pi pi-exclamation-triangle text-2xl text-yellow-500"></i>
+            <div>
+                <span class="font-bold text-textmain block">¿Qué deseas hacer con "{{ productToDelete.name }}"?</span>
+                <span class="text-xs text-textsec">Este producto podría tener ventas asociadas.</span>
+            </div>
+        </div>
+
+        <button pButton (click)="confirmDelete(false)"
+            class="p-button-outlined p-button-secondary w-full flex items-center justify-between p-4 border border-gray-600">
+            <div class="text-left">
+                <span class="block font-bold text-textmain">📦 Archivar (Recomendado)</span>
+                <span class="text-xs text-textsec">Oculta el producto pero mantiene el historial de ventas.</span>
+            </div>
+            <i class="pi pi-eye-slash text-xl"></i>
+        </button>
+
+        <button pButton (click)="confirmDelete(true)"
+            class="p-button-danger p-button-outlined w-full flex items-center justify-between p-4 border border-red-900/30 hover:bg-red-500/10">
+            <div class="text-left">
+                <span class="block font-bold text-red-500">💀 Eliminar Definitivamente</span>
+                <span class="text-xs text-red-400">Borra el producto Y TODAS sus ventas históricas. (Solo para
+                    pruebas)</span>
+            </div>
+            <i class="pi pi-trash text-xl text-red-500"></i>
+        </button>
+
+        <div class="flex justify-end pt-2">
+            <button pButton label="Cancelar" class="p-button-text text-textsec"
+                (click)="showDeleteDialog = false"></button>
+        </div>
+    </div>
+</p-dialog>
 <p-toast position="top-center"></p-toast>

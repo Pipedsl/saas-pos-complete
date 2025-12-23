@@ -36,6 +36,9 @@ export class ProductListComponent implements OnInit {
   filteredCategories: Category[] = [];
   selectedCategory: Category | null = null;
 
+  showDeleteDialog = false;
+  productToDelete: any = null;
+
   constructor(
     private productsService: ProductsService,
     private cd: ChangeDetectorRef,
@@ -84,30 +87,32 @@ export class ProductListComponent implements OnInit {
     }
   }
 
-  // Lógica para Eliminar Producto
-  deleteProduct(product: Product) {
-    this.confirmationService.confirm({
-      message: `¿Estás seguro de eliminar "${product.name}"? Esta acción no se puede deshacer.`,
-      header: 'Confirmar Eliminación',
-      icon: 'pi pi-exclamation-triangle',
-      acceptButtonStyleClass: 'p-button-danger p-button-text',
-      rejectButtonStyleClass: 'p-button-text p-button-secondary',
-      acceptLabel: 'Sí, eliminar',
-      rejectLabel: 'Cancelar',
+  deleteProduct(product: any) {
+    this.productToDelete = product;
+    this.showDeleteDialog = true; // Abre nuestro diálogo personalizado
+  }
 
-      accept: () => {
-        // Llamada al backend
-        this.productsService.deleteProduct(product.id).subscribe({
-          next: () => {
-            this.messageService.add({ severity: 'success', summary: 'Eliminado', detail: 'Producto borrado correctamente' });
-            // Recargar la tabla para que desaparezca
-            this.loadProducts();
-          },
-          error: (err) => {
-            console.error(err);
-            this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo eliminar el producto' });
-          }
+  confirmDelete(force: boolean) {
+    if (!this.productToDelete) return;
+
+    this.loading = true; // Opcional, si quieres mostrar spinner
+
+    this.productsService.deleteProduct(this.productToDelete.id, force).subscribe({
+      next: (res) => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Éxito',
+          detail: force ? 'Producto y ventas eliminados' : 'Producto archivado'
         });
+        this.loadProducts(); // Recargar tabla
+        this.showDeleteDialog = false;
+        this.productToDelete = null;
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo realizar la acción' });
+        this.loading = false;
       }
     });
   }

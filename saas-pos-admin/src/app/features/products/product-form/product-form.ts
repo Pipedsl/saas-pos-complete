@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { Router, ActivatedRoute, RouterModule } from '@angular/router';
@@ -11,17 +11,19 @@ import { Category } from '../../../core/models/category.model';
 import { AutoCompleteModule, AutoCompleteCompleteEvent } from 'primeng/autocomplete';
 import { PrimeImportsModule } from '../../../prime-imports';
 
-import { ConfirmationService } from 'primeng/api';
+import { ConfirmationService, MessageService } from 'primeng/api';
 import { ConfirmDialogModule } from 'primeng/confirmdialog';
 import { AutoCompleteSelectEvent } from 'primeng/autocomplete';
 import { Product } from '../../../core/models/product.model';
 import { Supplier } from '../../../core/models/supplier.model';
 import { BarcodeScannerComponent } from '../../../shared/components/barcode-scanner/barcode-scanner';
+import { ImageService } from '../../../core/services/image.service';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-product-form',
   imports: [CommonModule, ReactiveFormsModule, AutoCompleteModule, PrimeImportsModule, FormsModule, ConfirmDialogModule, BarcodeScannerComponent, RouterModule],
-  providers: [ConfirmationService],
+  providers: [ConfirmationService, MessageService],
   templateUrl: './product-form.html',
   styleUrl: './product-form.css',
 })
@@ -61,6 +63,8 @@ export class ProductFormComponent implements OnInit {
 
   showScanner = false;
 
+  uploadingImage = false;
+
   constructor(
     private fb: FormBuilder,
     private productsService: ProductsService,
@@ -69,10 +73,15 @@ export class ProductFormComponent implements OnInit {
     private suppliersService: SuppliersService,
     private router: Router,
     private route: ActivatedRoute,
+    private imageService: ImageService,
+    private messageService: MessageService,
+    private authService: AuthService,
+    private cdr: ChangeDetectorRef
   ) {
     this.productForm = this.fb.group({
       sku: ['', Validators.required],
       name: ['', Validators.required],
+      imageUrl: [''],
       description: [''],
       selectedCategory: [null, Validators.required],
       selectedSupplier: [null], // Opcional por ahora
@@ -358,6 +367,7 @@ export class ProductFormComponent implements OnInit {
       sku: formValue.sku,
       name: formValue.name,
       description: formValue.description,
+      imageUrl: formValue.imageUrl,
 
       // Precios y Stock
       costPrice: formValue.costPrice,
@@ -410,6 +420,39 @@ export class ProductFormComponent implements OnInit {
           alert('Error al crear. Revisa consola.');
         }
       });
+    }
+  }
+
+  async onFileSelected(event: any) {
+    const file: File = event.target.files[0];
+
+    if (file) {
+      this.uploadingImage = true;
+
+      // 1. Obtener ID del Tenant para la carpeta
+      // Si authService tiene el user, úsalo. Si no, decodifica el token o usa un fallback.
+      const user = this.authService.getCurrentUser();
+      // Ojo: Asegúrate que tu currentUser tenga tenantId, si no, usa 'generico'
+      const tenantId = user?.tenantId || 'sin-tenant';
+
+      const folderPath = `saas-pos/${tenantId}/products`;
+
+      try {
+        const url = await this.imageService.uploadImage(file, folderPath);
+
+        // 2. Asignar URL al formulario
+        this.productForm.patchValue({ imageUrl: url });
+        this.productForm.get('imageUrl')?.updateValueAndValidity(); // Forzar validación
+
+        this.messageService.add({ severity: 'success', summary: 'Imagen subida', detail: 'Guardada en: ' + folderPath });
+      } catch (error) {
+        console.error(error);
+        this.messageService.add({ severity: 'error', summary: 'Error', detail: 'No se pudo subir la imagen' });
+      } finally {
+        // 3. Finalizar loading y FORZAR actualización de vista
+        this.uploadingImage = false;
+        this.cdr.detectChanges(); // <--- ESTO ARREGLA EL BUG VISUAL
+      }
     }
   }
 

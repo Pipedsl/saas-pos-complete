@@ -52,26 +52,37 @@
             <div class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-2 lg:gap-3">
                 <div *ngFor="let p of visibleProducts" (click)="selectProduct(p)"
                     [ngClass]="{'opacity-50 grayscale cursor-not-allowed': p.stockCurrent <= 0, 'hover:border-primary hover:dark:bg-gray-800 cursor-pointer': p.stockCurrent > 0}"
-                    class="group bg-cardbg border border-gray-200 dark:border-gray-800 rounded-xl p-3 transition-all active:scale-95 duration-200 flex flex-col justify-between h-36 relative overflow-hidden">
-
-                    <div class="absolute top-2 right-2 text-[10px] font-bold px-2 py-0.5 rounded z-10"
-                        [ngClass]="p.stockCurrent <= 5 ? 'bg-red-500/20 text-red-400' : 'bg-green-500/20 text-green-400'">
+                    class="group bg-cardbg border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all active:scale-95 duration-200 flex flex-col h-auto relative">
+                    <div class="absolute top-2 right-2 text-[10px] font-bold px-2 py-0.5 rounded-full z-10 shadow-sm backdrop-blur-md"
+                        [ngClass]="p.stockCurrent <= 5 ? 'bg-red-500/90 text-white' : 'bg-emerald-500/90 text-white'">
                         {{ p.stockCurrent }}
                     </div>
 
-                    <div>
-                        <div class="text-[10px] font-mono text-gray-500 mb-1 truncate">{{ p.sku }}</div>
-                        <h3 class="text-textmain text-xs font-medium leading-tight line-clamp-2 h-8">
-                            {{ p.name }}
-                        </h3>
+                    <div class="w-full aspect-square bg-gray-100 dark:bg-gray-900 relative overflow-hidden">
+                        <img [src]="p.imageUrl ? p.imageUrl : 'https://placehold.co/400x400/f3f4f6/9ca3af?text=Sin+Imagen'"
+                            class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                            loading="lazy" alt="{{p.name}}">
+
+                        <div
+                            class="absolute bottom-0 left-0 bg-black/60 backdrop-blur-sm text-white text-[9px] px-2 py-1 rounded-tr-lg font-mono">
+                            {{ p.sku }}
+                        </div>
                     </div>
 
-                    <div class="mt-2 flex justify-between items-end">
-                        <span *ngIf="p.measurementUnit === 'KG'"
-                            class="text-[9px] bg-yellow-900/30 text-yellow-500 px-1 rounded">KG</span>
-                        <p class="text-lg font-bold text-emerald-400">
-                            {{ getPrice(p) | currency:'CLP':'symbol-narrow':'1.0-0' }}
-                        </p>
+                    <div class="p-3 flex flex-col flex-1 gap-2">
+                        <h3 class="text-textmain text-sm font-bold leading-tight line-clamp-2 h-10" title="{{p.name}}">
+                            {{ p.name }}
+                        </h3>
+
+                        <div
+                            class="flex justify-between items-center mt-auto pt-2 border-t border-gray-100 dark:border-gray-800">
+                            <span *ngIf="p.measurementUnit === 'KG'"
+                                class="text-[10px] font-bold bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-500 px-1.5 py-0.5 rounded">KG</span>
+                            <span *ngIf="p.measurementUnit !== 'KG'"></span>
+                            <p class="text-lg font-black text-primary leading-none">
+                                {{ getPrice(p) | currency:'CLP':'symbol-narrow':'1.0-0' }}
+                            </p>
+                        </div>
                     </div>
                 </div>
             </div>
