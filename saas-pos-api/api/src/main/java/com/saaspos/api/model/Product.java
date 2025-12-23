@@ -81,7 +81,18 @@ public class Product {
     @Transient
     private BigDecimal calculatedMargin;
 
+    // --- CAMPOS E-COMMERCE ---
+
+    @Column(name = "is_public")
+    private Boolean isPublic = false; // ¿Se muestra en la web?
+
+    @Column(name = "public_price")
+    private BigDecimal publicPrice; // Opcional: Precio diferenciado para web
+
     @Column(name = "image_url")
     private String imageUrl;
+
+    @Column(name = "description_web")
+    private String descriptionWeb;
 
 }

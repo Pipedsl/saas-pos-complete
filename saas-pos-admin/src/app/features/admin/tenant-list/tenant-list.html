@@ -24,15 +24,15 @@
             </ng-template>
 
             <ng-template pTemplate="body" let-tenant>
-                <tr class="border-b border-gray-200 dark:border-gray-800 hover:dark:bg-gray-900 transition-colors">
+                <tr class="border-b border-gray-200 dark:border-gray-800 hover:bg-darkbg transition-colors">
 
                     <td>
                         <div class="font-bold text-textmain text-lg">{{ tenant.companyName }}</div>
-                        <div class="text-xs text-gray-500 font-mono">ID: {{ tenant.id | slice:0:8 }}...</div>
+                        <div class="text-xs text-textsec font-mono">ID: {{ tenant.id | slice:0:8 }}...</div>
                     </td>
 
                     <td>
-                        <div class="text-gray-200">{{ tenant.ownerName }}</div>
+                        <div class="text-textmain">{{ tenant.ownerName }}</div>
                         <div class="text-xs text-primary">{{ tenant.ownerEmail }}</div>
                     </td>
 
@@ -56,13 +56,13 @@
                                 Demo: {{ tenant.demoExpiresAt | date:'dd/MM/yyyy' }}
                             </span>
                             <span *ngIf="!tenant.subscriptionEndDate && !tenant.demoExpiresAt"
-                                class="text-xs text-gray-600">
+                                class="text-xs text-textsec">
                                 -
                             </span>
                         </div>
                     </td>
 
-                    <td class="text-sm text-gray-500">
+                    <td class="text-sm text-textsec">
                         {{ tenant.createdAt | date:'dd/MM/yy HH:mm' }}
                     </td>
 
@@ -77,7 +77,7 @@
 
             <ng-template pTemplate="emptymessage">
                 <tr>
-                    <td colspan="6" class="text-center p-10 text-gray-500">
+                    <td colspan="7" class="text-center p-10 text-textsec">
                         <i class="pi pi-folder-open text-4xl mb-2 block"></i>
                         No hay clientes registrados todavía.
                     </td>
@@ -94,15 +94,15 @@
 
     <div class="flex flex-col gap-5 pt-4" *ngIf="selectedTenant">
 
-        <div class="bg-blue-900/20 p-4 rounded border border-blue-500/30 space-y-2">
+        <div class="bg-primary/10 p-4 rounded border border-primary/30 space-y-2">
             <div>
                 <p class="text-xs text-textsec uppercase">Cliente</p>
                 <p class="text-lg font-bold text-textmain">{{ selectedTenant.companyName }}</p>
             </div>
 
-            <div class="flex justify-between items-center border-t border-blue-500/30 pt-2 mt-2">
+            <div class="flex justify-between items-center border-t border-primary/30 pt-2 mt-2">
                 <span class="text-sm text-textsec">Vencimiento Actual:</span>
-                <span class="text-sm font-mono text-blue-300">
+                <span class="text-sm font-mono text-primary">
                     {{ (selectedTenant.subscriptionEndDate || selectedTenant.demoExpiresAt) | date:'dd/MM/yyyy' }}
                 </span>
             </div>
@@ -113,7 +113,7 @@
             <p-autocomplete [(ngModel)]="subForm.newPlan" [suggestions]="filteredAvailablePlans"
                 (completeMethod)="filterAvailablePlans($event)" [dropdown]="true" field="label" [forceSelection]="true"
                 placeholder="Mantener plan actual..." styleClass="w-full"
-                inputStyleClass="w-full dark:bg-gray-900 border-gray-700 text-textmain">
+                inputStyleClass="w-full bg-darkbg border-gray-700 text-textmain">
             </p-autocomplete>
         </div>
 
@@ -122,14 +122,14 @@
             <p-autocomplete [(ngModel)]="subForm.monthsToAdd" [suggestions]="filteredPlanOptions"
                 (completeMethod)="filterPlans($event)" [dropdown]="true" field="label" [forceSelection]="true"
                 placeholder="Seleccione..." styleClass="w-full"
-                inputStyleClass="w-full dark:bg-gray-900 border-gray-700 text-textmain">
+                inputStyleClass="w-full bg-darkbg border-gray-700 text-textmain">
             </p-autocomplete>
         </div>
 
         <div class="flex flex-col gap-2">
             <label class="text-textsec text-sm">Cajeros Extra (Adicionales al plan)</label>
             <p-inputNumber [(ngModel)]="subForm.extraCashiers" [showButtons]="true" [min]="0" styleClass="w-full"
-                inputStyleClass="dark:bg-gray-900 border-gray-700 text-textmain w-full text-center">
+                inputStyleClass="bg-darkbg border-gray-700 text-textmain w-full text-center">
             </p-inputNumber>
         </div>
 
@@ -138,7 +138,7 @@
             <p-autocomplete [(ngModel)]="subForm.status" [suggestions]="filteredStatusOptions"
                 (completeMethod)="filterStatus($event)" [dropdown]="true" field="label" [forceSelection]="true"
                 placeholder="Seleccione..." styleClass="w-full"
-                inputStyleClass="w-full dark:bg-gray-900 border-gray-700 text-textmain">
+                inputStyleClass="w-full bg-darkbg border-gray-700 text-textmain">
             </p-autocomplete>
         </div>
 

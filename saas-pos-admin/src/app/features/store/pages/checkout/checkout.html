@@ -1,0 +1,137 @@
+<p-toast position="top-center"></p-toast>
+
+<div class="max-w-2xl mx-auto pb-20">
+
+    <div class="flex items-center gap-3 mb-6">
+        <button [routerLink]="['/store', slug]"
+            class="p-2 rounded-full hover:bg-gray-100 transition-colors text-textsec">
+            <i class="pi pi-arrow-left text-xl"></i>
+        </button>
+        <h2 class="text-2xl font-bold text-textmain">Finalizar Pedido</h2>
+    </div>
+
+    <div *ngIf="(cartItems$ | async)?.length === 0"
+        class="text-center py-20 bg-white rounded-2xl shadow-sm border border-dashed border-gray-200">
+        <i class="pi pi-shopping-cart text-4xl text-gray-300 mb-4"></i>
+        <p class="text-gray-500 font-medium mb-4">Tu carrito está vacío.</p>
+        <button pButton label="Volver al Catálogo" [routerLink]="['/store', slug]" class="p-button-outlined"></button>
+    </div>
+
+    <div *ngIf="(cartItems$ | async)?.length ?? 0 > 0" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+
+        <div class="space-y-4">
+            <h3 class="font-bold text-gray-800 text-lg">Tu Resumen</h3>
+
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden divide-y divide-gray-50">
+                <div *ngFor="let item of cartItems$ | async" class="p-3 flex gap-3">
+
+                    <div class="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden shrink-0">
+                        <img [src]="item.product.imageUrl || 'https://placehold.co/100'"
+                            class="w-full h-full object-cover">
+                    </div>
+
+                    <div class="flex-1 flex flex-col justify-between">
+                        <div>
+                            <p class="font-bold text-gray-800 text-sm line-clamp-1">{{ item.product.name }}</p>
+                            <p class="text-xs text-gray-500">{{ item.product.price |
+                                currency:'CLP':'symbol-narrow':'1.0-0' }} c/u</p>
+                        </div>
+
+                        <div class="flex justify-between items-end">
+                            <div class="flex items-center bg-gray-50 rounded-lg border border-gray-200 h-7">
+                                <button (click)="decrease(item.product.id)"
+                                    class="w-7 h-full flex items-center justify-center text-gray-500 hover:text-red-500 font-bold">-</button>
+                                <span class="text-xs font-bold w-6 text-center">{{ item.quantity }}</span>
+                                <button (click)="increase(item.product.id)"
+                                    class="w-7 h-full flex items-center justify-center text-gray-500 hover:text-green-600 font-bold">+</button>
+                            </div>
+
+                            <p class="font-bold text-primary">{{ item.subtotal | currency:'CLP':'symbol-narrow':'1.0-0'
+                                }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center">
+                <span class="text-gray-500">Total a Pagar</span>
+                <span class="text-2xl font-black text-gray-900">{{ total$ | async |
+                    currency:'CLP':'symbol-narrow':'1.0-0' }}</span>
+            </div>
+        </div>
+
+        <div>
+            <h3 class="font-bold text-gray-800 text-lg mb-4">Tus Datos</h3>
+
+            <form [formGroup]="checkoutForm" (ngSubmit)="submitOrder()" class="space-y-4">
+
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs text-gray-500 font-bold uppercase">Nombre</label>
+                    <input pInputText formControlName="customerName" placeholder="Tu nombre completo"
+                        class="w-full bg-white border-gray-300 text-gray-800" />
+                    <small
+                        *ngIf="checkoutForm.get('customerName')?.invalid && checkoutForm.get('customerName')?.touched"
+                        class="text-red-500 text-xs">Requerido</small>
+                </div>
+
+                <div class="flex flex-col gap-1">
+                    <label class="text-xs text-gray-500 font-bold uppercase">WhatsApp / Teléfono</label>
+                    <input pInputText formControlName="customerPhone" placeholder="+569..."
+                        class="w-full bg-white border-gray-300 text-gray-800" />
+                    <small class="text-gray-400 text-xs">Te contactaremos a este número.</small>
+                </div>
+
+                <div class="flex flex-col gap-2 mt-4">
+                    <label class="text-xs text-gray-500 font-bold uppercase">Forma de Entrega</label>
+
+                    <div class="flex gap-4">
+                        <div class="flex items-center" *ngIf="shopConfig?.shippingMethods?.['pickup']">
+                            <p-radioButton name="deliveryMethod" value="PICKUP" formControlName="deliveryMethod"
+                                inputId="pickup"></p-radioButton>
+                            <label for="pickup" class="ml-2 cursor-pointer text-sm">Retiro en Tienda</label>
+                        </div>
+                        <div class="flex items-center" *ngIf="shopConfig?.shippingMethods?.['delivery']">
+                            <p-radioButton name="deliveryMethod" value="DELIVERY" formControlName="deliveryMethod"
+                                inputId="delivery"></p-radioButton>
+                            <label for="delivery" class="ml-2 cursor-pointer text-sm">Despacho a Domicilio</label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex flex-col gap-1 animate-fade-in"
+                    *ngIf="checkoutForm.get('deliveryMethod')?.value === 'DELIVERY'">
+                    <label class="text-xs text-gray-500 font-bold uppercase">Dirección de Envío</label>
+                    <textarea pInputTextarea formControlName="customerAddress" rows="2"
+                        class="w-full bg-white border-gray-300 text-gray-800"></textarea>
+                </div>
+
+                <div class="flex flex-col gap-2 mt-4">
+                    <label class="text-xs text-gray-500 font-bold uppercase">Método de Pago</label>
+
+                    <div class="space-y-2">
+                        <div class="flex items-center" *ngIf="shopConfig?.paymentMethods?.['transfer']">
+                            <p-radioButton name="paymentMethod" value="TRANSFER" formControlName="paymentMethod"
+                                inputId="transfer"></p-radioButton>
+                            <label for="transfer" class="ml-2 cursor-pointer text-sm">Transferencia Bancaria</label>
+                        </div>
+                        <div class="flex items-center" *ngIf="shopConfig?.paymentMethods?.['cash']">
+                            <p-radioButton name="paymentMethod" value="CASH" formControlName="paymentMethod"
+                                inputId="cash"></p-radioButton>
+                            <label for="cash" class="ml-2 cursor-pointer text-sm">Efectivo / Contra Entrega</label>
+                        </div>
+                    </div>
+                    <small
+                        *ngIf="checkoutForm.get('paymentMethod')?.invalid && checkoutForm.get('paymentMethod')?.touched"
+                        class="text-red-500 text-xs">Selecciona un método de pago</small>
+                </div>
+
+                <button pButton type="submit" [label]="loading ? 'Enviando...' : 'Enviar Pedido por WhatsApp'"
+                    [loading]="loading" class="w-full mt-6 font-bold py-3 text-lg" [style.background]="'var(--primary)'"
+                    style="border: none;">
+                </button>
+
+            </form>
+        </div>
+
+    </div>
+</div>

@@ -9,6 +9,7 @@ import { RegisterComponent } from './features/auth/register/register';
 export const routes: Routes = [
     { path: 'login', component: LoginComponent },
     { path: 'register', component: RegisterComponent },
+    { path: 'store', loadChildren: () => import('./features/store/store-module').then(m => m.StoreModule) },
     {
         path: '',
         component: MainLayoutComponent,

@@ -9,14 +9,14 @@
 
         <div class="bg-cardbg p-3 rounded-xl shadow-lg border border-gray-200 dark:border-gray-800 flex gap-3 shrink-0">
             <button (click)="showScanner = true"
-                class="dark:bg-gray-800 text-textmain px-4 rounded-lg border border-gray-700 hover:bg-gray-700 transition-colors flex items-center justify-center">
+                class="bg-darkbg text-textmain px-4 rounded-lg border border-gray-700 hover:bg-gray-700 transition-colors flex items-center justify-center">
                 <i class="pi pi-camera text-xl"></i>
             </button>
             <div class="relative flex-1 flex items-center">
                 <div class="relative w-full">
                     <i class="pi pi-search absolute left-4 top-3 text-textsec text-lg"></i>
                     <input type="text"
-                        class="w-full h-12 dark:bg-gray-900 text-textmain pl-12 pr-4 rounded-lg border border-gray-700 focus:border-primary focus:ring-2 outline-none transition-all"
+                        class="w-full h-12 bg-darkbg text-textmain pl-12 pr-4 rounded-lg border border-gray-700 focus:border-primary focus:ring-2 outline-none transition-all"
                         placeholder="Escanear código o buscar producto..." [ngModel]="searchTerm"
                         (ngModelChange)="onSearch($event)" (keyup.enter)="onEnterSearch()" />
                     <button *ngIf="searchTerm" (click)="onSearch('')"
@@ -26,25 +26,24 @@
                 </div>
             </div>
         </div>
-        <div class="flex gap-2 overflow-x-auto pb-2 mb-2 scrollbar-hide w-full max-w-full">
 
+        <div class="flex gap-2 overflow-x-auto pb-2 mb-2 scrollbar-hide w-full max-w-full">
             <button (click)="filterByCategory(null)"
                 class="px-4 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap border"
-                [ngClass]="selectedCategoryId === null ? 'dark:bg-gray-950 text-textmain border-primary' : 'dark:bg-gray-800 text-textsec border-gray-700 hover:bg-gray-700'">
+                [ngClass]="selectedCategoryId === null ? 'bg-darkbg text-textmain border-primary' : 'bg-cardbg text-textsec border-gray-700 hover:bg-gray-700'">
                 Todas
             </button>
 
             <button *ngFor="let cat of categories" (click)="filterByCategory(cat.id)"
                 class="px-4 py-2 rounded-full text-sm font-bold transition-all whitespace-nowrap border"
-                [ngClass]="selectedCategoryId === cat.id ? 'dark:bg-gray-950 text-textmain border-primary' : 'dark:bg-gray-800 text-textsec border-gray-700 hover:bg-gray-700'">
+                [ngClass]="selectedCategoryId === cat.id ? 'bg-darkbg text-textmain border-primary' : 'bg-cardbg text-textsec border-gray-700 hover:bg-gray-700'">
                 {{ cat.name }}
             </button>
         </div>
 
         <div class="flex-1 overflow-y-auto pr-1 pb-24 lg:pb-0">
-
             <div *ngIf="visibleProducts.length === 0"
-                class="h-64 flex flex-col items-center justify-center text-gray-500">
+                class="h-64 flex flex-col items-center justify-center text-textsec">
                 <i class="pi pi-box text-4xl mb-2"></i>
                 <p>No se encontraron productos</p>
             </div>
@@ -89,14 +88,14 @@
         </div>
     </div>
 
-    <div class="bg-white rounded-xl shadow-2xl flex flex-col h-full border border-gray-200 overflow-hidden lg:order-2 transition-all duration-300 w-full lg:w-[35%] shrink-0 lg:min-w-[380px]"
+    <div class="bg-cardbg rounded-xl shadow-2xl flex flex-col h-full border border-gray-200 dark:border-gray-800 overflow-hidden lg:order-2 transition-all duration-300 w-full lg:w-[35%] shrink-0 lg:min-w-[380px]"
         [ngClass]="{
             'hidden lg:flex': mobileView === 'CATALOG', 
             'flex': mobileView === 'CART'
          }">
 
         <div
-            class="dark:bg-gray-900 p-3 text-textmain flex justify-between items-center border-b border-gray-200 dark:border-gray-800 shrink-0">
+            class="bg-darkbg p-3 text-textmain flex justify-between items-center border-b border-gray-200 dark:border-gray-800 shrink-0">
             <div class="flex items-center gap-2">
                 <button (click)="toggleMobileView()" class="lg:hidden text-textsec hover:text-textmain mr-2">
                     <i class="pi pi-arrow-left text-xl"></i>
@@ -109,15 +108,15 @@
             </button>
         </div>
 
-        <div class="flex-1 overflow-y-auto p-3 bg-gray-50 flex flex-col relative">
+        <div class="flex-1 overflow-y-auto p-3 bg-darkbg flex flex-col relative">
 
             <div *ngIf="(cartItems$ | async)?.length" class="space-y-2 pb-4">
                 <div *ngFor="let item of cartItems$ | async"
-                    class="bg-white p-3 rounded-lg border border-gray-200 shadow-sm flex justify-between items-center transition-all">
+                    class="bg-cardbg p-3 rounded-lg border border-gray-700 shadow-sm flex justify-between items-center transition-all">
 
                     <div class="flex-1 min-w-0 mr-3">
-                        <div class="font-bold text-gray-800 text-sm truncate">{{ item.product.name }}</div>
-                        <div class="text-xs text-gray-500 mt-1">
+                        <div class="font-bold text-textmain text-sm truncate">{{ item.product.name }}</div>
+                        <div class="text-xs text-textsec mt-1">
                             {{ item.unitPrice | currency:'CLP':'symbol-narrow':'1.0-0' }}
                             <span class="font-bold">/ {{ item.product.measurementUnit === 'KG' ? 'kg' : 'un' }}</span>
                         </div>
@@ -125,18 +124,18 @@
 
                     <div class="flex items-center gap-2">
                         <div
-                            class="flex items-center border border-gray-300 rounded bg-white shadow-sm h-8 overflow-hidden">
+                            class="flex items-center border border-gray-600 rounded bg-darkbg shadow-sm h-8 overflow-hidden">
                             <button (click)="decreaseItem(item.product.id)"
-                                class="w-8 h-full text-red-500 hover:bg-red-50 font-bold flex items-center justify-center transition-colors">-</button>
+                                class="w-8 h-full text-red-500 hover:bg-red-500/10 font-bold flex items-center justify-center transition-colors">-</button>
                             <span
-                                class="px-2 font-mono font-black text-sm text-gray-900 bg-gray-50 border-x border-gray-200 h-full flex items-center justify-center min-w-12">
+                                class="px-2 font-mono font-black text-sm text-textmain bg-darkbg border-x border-gray-600 h-full flex items-center justify-center min-w-12">
                                 {{ item.quantity | number:'1.0-3' }}
                             </span>
                             <button (click)="increaseItem(item)"
-                                class="w-8 h-full text-green-600 hover:bg-green-50 font-bold flex items-center justify-center transition-colors">+</button>
+                                class="w-8 h-full text-secondary hover:bg-green-500/10 font-bold flex items-center justify-center transition-colors">+</button>
                         </div>
 
-                        <div class="font-bold text-gray-900 text-sm min-w-16 text-right">
+                        <div class="font-bold text-textmain text-sm min-w-16 text-right">
                             {{ item.subtotal | currency:'CLP':'symbol-narrow':'1.0-0' }}
                         </div>
 
@@ -150,7 +149,7 @@
 
             <div *ngIf="(cartItems$ | async)?.length === 0"
                 class="absolute inset-0 flex flex-col items-center justify-center text-textsec opacity-60 pointer-events-none">
-                <div class="bg-gray-200 p-6 rounded-full mb-4">
+                <div class="bg-gray-800 p-6 rounded-full mb-4">
                     <i class="pi pi-shopping-bag text-5xl text-textsec"></i>
                 </div>
                 <h3 class="text-lg font-bold text-gray-500">Carrito vacío</h3>
@@ -159,15 +158,15 @@
 
         </div>
 
-        <div class="bg-white p-4 border-t border-gray-200 shrink-0 z-10 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+        <div class="bg-cardbg p-4 border-t border-gray-700 shrink-0 z-10 shadow-up">
             <div class="flex justify-between items-end mb-3">
-                <span class="text-gray-500 text-sm font-bold uppercase tracking-wide">Total a Pagar</span>
-                <span class="text-4xl font-black text-gray-900">
+                <span class="text-textsec text-sm font-bold uppercase tracking-wide">Total a Pagar</span>
+                <span class="text-4xl font-black text-textmain">
                     {{ total$ | async | currency:'CLP':'symbol-narrow':'1.0-0' }}
                 </span>
             </div>
             <button (click)="initiateCheckout()"
-                class="w-full bg-emerald-500 hover:bg-emerald-600 text-textmain font-bold py-4 rounded-xl text-xl shadow-lg shadow-emerald-500/30 active:scale-95 transition-all flex items-center justify-center gap-2">
+                class="w-full bg-secondary hover:bg-green-600 text-white font-bold py-4 rounded-xl text-xl shadow-lg shadow-green-500/30 active:scale-95 transition-all flex items-center justify-center gap-2">
                 COBRAR <i class="pi pi-arrow-right font-bold"></i>
             </button>
         </div>
@@ -175,15 +174,15 @@
 
     <div *ngIf="mobileView === 'CATALOG'" class="lg:hidden absolute bottom-4 left-4 right-4 z-50">
         <button (click)="toggleMobileView()"
-            class="w-full dark:bg-gray-900 text-textmain p-4 rounded-xl shadow-2xl flex justify-between items-center border border-gray-700 active:scale-95 transition-transform">
+            class="w-full bg-cardbg text-textmain p-4 rounded-xl shadow-2xl flex justify-between items-center border border-gray-700 active:scale-95 transition-transform">
             <div class="flex items-center gap-3">
                 <div
-                    class="dark:bg-gray-950 text-textmain w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">
+                    class="bg-darkbg text-textmain w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm">
                     {{ (cartItems$ | async)?.length }}
                 </div>
                 <span class="font-bold text-sm">Ver Carrito</span>
             </div>
-            <span class="text-xl font-bold text-primary">
+            <span class="text-xl font-bold text-secondary">
                 {{ total$ | async | currency:'CLP':'symbol-narrow':'1.0-0' }}
             </span>
         </button>
@@ -209,11 +208,9 @@
     </ng-template>
 
     <div class="flex flex-col gap-6 py-4" *ngIf="selectedProduct">
-
-        <div class="text-center border-b border-gray-200 dark:border-gray-800 pb-4">
+        <div class="text-center border-b border-gray-700 pb-4">
             <h3 class="text-2xl font-bold text-primary mb-1">{{ selectedProduct.name }}</h3>
-            <div
-                class="mt-2 inline-block dark:bg-gray-800 px-3 py-1 rounded border border-gray-700 text-xs text-textsec">
+            <div class="mt-2 inline-block bg-darkbg px-3 py-1 rounded border border-gray-700 text-xs text-textsec">
                 Stock: <span class="text-textmain font-bold">{{ selectedProduct.stockCurrent }}</span>
             </div>
         </div>
@@ -222,7 +219,6 @@
             <label class="text-textsec text-sm text-center">
                 Cantidad ({{ selectedProduct.measurementUnit === 'KG' ? 'Kilos' : 'Unidades' }})
             </label>
-
             <p-inputNumber #qtyInput [(ngModel)]="qtyToAdd" [min]="selectedProduct.measurementUnit === 'KG' ? 0.05 : 1"
                 [max]="selectedProduct.stockCurrent" [showButtons]="true" buttonLayout="horizontal"
                 spinnerMode="horizontal" [step]="selectedProduct.measurementUnit === 'KG' ? 0.1 : 1"
@@ -230,18 +226,17 @@
                 incrementButtonIcon="pi pi-plus" decrementButtonIcon="pi pi-minus" locale="en-US"
                 [minFractionDigits]="selectedProduct.measurementUnit === 'KG' ? 3 : 0"
                 [maxFractionDigits]="selectedProduct.measurementUnit === 'KG' ? 3 : 0" [useGrouping]="false"
-                inputStyleClass="text-center text-4xl font-bold dark:bg-gray-900 text-textmain border-gray-700 w-full h-16 focus:ring-0"
+                inputStyleClass="text-center text-4xl font-bold bg-darkbg text-textmain border-gray-700 w-full h-16 focus:ring-0"
                 styleClass="w-full" (keydown.enter)="confirmAddToCart()">
             </p-inputNumber>
         </div>
 
-        <div class="flex justify-between items-center dark:bg-gray-800 p-4 rounded-lg border border-gray-700">
+        <div class="flex justify-between items-center bg-darkbg p-4 rounded-lg border border-gray-700">
             <span class="text-textsec">Subtotal:</span>
-            <span class="text-2xl font-bold text-emerald-400">
+            <span class="text-2xl font-bold text-secondary">
                 {{ (getPrice(selectedProduct) * qtyToAdd) | currency:'CLP':'symbol-narrow':'1.0-0' }}
             </span>
         </div>
-
     </div>
 
     <ng-template pTemplate="footer">
@@ -251,9 +246,7 @@
             <button pButton label="AGREGAR" (click)="confirmAddToCart()"
                 class="p-button-primary flex-1 font-bold text-lg" icon="pi pi-check"></button>
         </div>
-
     </ng-template>
-
 </p-dialog>
 
 <p-dialog header="Finalizar Venta" [(visible)]="showPaymentDialog" [modal]="true"
@@ -261,29 +254,27 @@
     styleClass="bg-cardbg text-textmain border border-gray-200 dark:border-gray-800">
 
     <div class="flex flex-col gap-6 pt-2">
-
         <div class="text-center">
             <p class="text-textsec text-sm uppercase tracking-wider">Total a Pagar</p>
             <p class="text-5xl font-black text-textmain mt-1">{{ currentTotal | currency:'CLP':'symbol-narrow':'1.0-0'
-                }}
-            </p>
+                }}</p>
         </div>
 
         <div class="grid grid-cols-3 gap-3">
             <div (click)="paymentMethod = 'CASH'"
-                [ngClass]="paymentMethod === 'CASH' ? 'dark:bg-gray-950 text-textmain border-primary' : 'dark:bg-gray-800 text-textsec border-gray-700'"
+                [ngClass]="paymentMethod === 'CASH' ? 'bg-darkbg text-textmain border-primary' : 'bg-cardbg text-textsec border-gray-700'"
                 class="p-4 rounded-lg border-2 cursor-pointer flex flex-col items-center justify-center transition-all hover:bg-gray-700">
                 <i class="pi pi-money-bill text-2xl mb-1"></i>
                 <span class="text-sm font-bold">Efectivo</span>
             </div>
             <div (click)="paymentMethod = 'CARD'"
-                [ngClass]="paymentMethod === 'CARD' ? 'dark:bg-gray-950 text-textmain border-primary' : 'dark:bg-gray-800 text-textsec border-gray-700'"
+                [ngClass]="paymentMethod === 'CARD' ? 'bg-darkbg text-textmain border-primary' : 'bg-cardbg text-textsec border-gray-700'"
                 class="p-4 rounded-lg border-2 cursor-pointer flex flex-col items-center justify-center transition-all hover:bg-gray-700">
                 <i class="pi pi-credit-card text-2xl mb-1"></i>
                 <span class="text-sm font-bold">Tarjeta</span>
             </div>
             <div (click)="paymentMethod = 'TRANSFER'"
-                [ngClass]="paymentMethod === 'TRANSFER' ? 'dark:bg-gray-950 text-textmain border-primary' : 'dark:bg-gray-800 text-textsec border-gray-700'"
+                [ngClass]="paymentMethod === 'TRANSFER' ? 'bg-darkbg text-textmain border-primary' : 'bg-cardbg text-textsec border-gray-700'"
                 class="p-4 rounded-lg border-2 cursor-pointer flex flex-col items-center justify-center transition-all hover:bg-gray-700">
                 <i class="pi pi-send text-2xl mb-1"></i>
                 <span class="text-sm font-bold">Transf.</span>
@@ -291,7 +282,7 @@
         </div>
 
         <div *ngIf="paymentMethod === 'CASH'"
-            class="dark:bg-gray-900 p-4 rounded-lg border border-gray-200 dark:border-gray-800 space-y-4">
+            class="bg-darkbg p-4 rounded-lg border border-gray-200 dark:border-gray-800 space-y-4">
             <div>
                 <label class="text-textsec text-sm block mb-2">Monto Recibido</label>
                 <p-inputNumber [(ngModel)]="amountReceived" mode="currency" currency="CLP" locale="es-CL"
@@ -300,7 +291,6 @@
                     styleClass="w-full" (keydown.enter)="finalizeSale()">
                 </p-inputNumber>
             </div>
-
             <div class="flex justify-between items-center border-t border-gray-700 pt-4">
                 <span class="text-xl font-bold text-textsec">Vuelto:</span>
                 <span class="text-3xl font-bold" [ngClass]="changeAmount >= 0 ? 'text-green-400' : 'text-red-500'">
@@ -317,7 +307,7 @@
         </div>
 
         <div *ngIf="paymentMethod === 'TRANSFER'"
-            class="dark:bg-gray-900 p-4 rounded-xl border border-gray-700 text-center space-y-2">
+            class="bg-darkbg p-4 rounded-xl border border-gray-700 text-center space-y-2">
             <p class="text-textsec text-sm">Transfiere a:</p>
             <div
                 class="bg-black p-3 rounded border border-gray-200 dark:border-gray-800 text-left text-sm font-mono text-green-400">

@@ -13,6 +13,7 @@ import { ToastModule } from 'primeng/toast'; // Para alertas
 import { MessageService } from 'primeng/api'; // Para alertas
 import { AutoCompleteModule } from "primeng/autocomplete";
 import { CheckboxModule } from "primeng/checkbox";
+import { RadioButtonModule } from 'primeng/radiobutton';
 
 
 
@@ -21,9 +22,9 @@ import { CheckboxModule } from "primeng/checkbox";
 
 @NgModule({
 
-    imports: [ButtonModule, CardModule, InputTextModule, PasswordModule, TableModule, TagModule, InputNumberModule, TextareaModule, DialogModule, ToastModule, AutoCompleteModule, CheckboxModule
+    imports: [ButtonModule, CardModule, InputTextModule, PasswordModule, TableModule, TagModule, InputNumberModule, TextareaModule, DialogModule, ToastModule, AutoCompleteModule, CheckboxModule, RadioButtonModule
     ],
-    exports: [ButtonModule, CardModule, InputTextModule, PasswordModule, TableModule, TagModule, InputNumberModule, TextareaModule, DialogModule, ToastModule, AutoCompleteModule, CheckboxModule],
+    exports: [ButtonModule, CardModule, InputTextModule, PasswordModule, TableModule, TagModule, InputNumberModule, TextareaModule, DialogModule, ToastModule, AutoCompleteModule, CheckboxModule, RadioButtonModule],
     providers: [MessageService]
 
 })

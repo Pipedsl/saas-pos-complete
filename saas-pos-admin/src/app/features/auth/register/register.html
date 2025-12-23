@@ -1,7 +1,7 @@
 <div class="min-h-screen flex items-center justify-center bg-darkbg p-4 relative overflow-hidden">
 
     <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div class="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] dark:bg-gray-950/10 rounded-full blur-3xl">
+        <div class="absolute top-[-20%] right-[-10%] w-[500px] h-[500px] bg-primary/10 rounded-full blur-3xl">
         </div>
         <div class="absolute bottom-[-20%] left-[-10%] w-[500px] h-[500px] bg-secondary/10 rounded-full blur-3xl"></div>
     </div>
@@ -24,26 +24,26 @@
             <div class="flex flex-col gap-2">
                 <label class="text-textsec text-sm">Nombre de tu Negocio</label>
                 <input pInputText formControlName="companyName" placeholder="Ej: Minimarket Don Pepe"
-                    class="w-full dark:bg-gray-900 border-gray-700 text-textmain" />
+                    class="w-full bg-darkbg border-gray-700 text-textmain" />
             </div>
 
             <div class="flex flex-col gap-2">
                 <label class="text-textsec text-sm">Tu Nombre Completo</label>
                 <input pInputText formControlName="fullName" placeholder="Ej: Juan Pérez"
-                    class="w-full dark:bg-gray-900 border-gray-700 text-textmain" />
+                    class="w-full bg-darkbg border-gray-700 text-textmain" />
             </div>
 
             <div class="flex flex-col gap-2">
                 <label class="text-textsec text-sm">Correo Electrónico</label>
                 <input pInputText formControlName="email" type="email" placeholder="juan@gmail.com"
-                    class="w-full dark:bg-gray-900 border-gray-700 text-textmain" />
+                    class="w-full bg-darkbg border-gray-700 text-textmain" />
             </div>
 
             <div class="flex flex-col gap-2">
                 <label class="text-textsec text-sm">Contraseña</label>
                 <p-password formControlName="password" [toggleMask]="true" [feedback]="true"
                     placeholder="Crea una clave segura" styleClass="w-full"
-                    inputStyleClass="w-full dark:bg-gray-900 border-gray-700 text-textmain">
+                    inputStyleClass="w-full bg-darkbg border-gray-700 text-textmain">
                 </p-password>
             </div>
 

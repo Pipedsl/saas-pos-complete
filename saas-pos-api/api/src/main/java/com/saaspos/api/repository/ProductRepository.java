@@ -20,4 +20,7 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
 
     @Query("SELECT COUNT(p) FROM Product p WHERE p.tenantId = :tenantId AND p.stockCurrent <= p.stockMin")
     long countLowStock(@Param("tenantId") UUID tenantId);
+
+    // Buscar solo productos marcados como públicos para un tenant específico
+    List<Product> findByTenantIdAndIsPublicTrue(UUID tenantId);
 }

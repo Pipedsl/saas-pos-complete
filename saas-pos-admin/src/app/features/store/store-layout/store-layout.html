@@ -1,0 +1,39 @@
+<div class="min-h-screen bg-gray-50 flex flex-col font-sans transition-colors duration-300"
+    [style.--primary]="shopConfig?.primaryColor || '#000000'">
+
+    <header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md shadow-sm border-b border-gray-100">
+        <div class="container mx-auto px-4 h-16 flex items-center justify-between">
+
+            <div class="flex items-center gap-3 cursor-pointer" [routerLink]="['/store', slug]">
+                <div *ngIf="shopConfig?.logoUrl"
+                    class="w-10 h-10 rounded-full bg-gray-100 overflow-hidden border border-gray-200">
+                    <img [src]="shopConfig?.logoUrl" class="w-full h-full object-cover">
+                </div>
+                <h1 class="font-bold text-lg md:text-xl text-gray-800 truncate max-w-[200px] md:max-w-none">
+                    {{ shopConfig?.shopName || 'Cargando...' }}
+                </h1>
+            </div>
+
+            <button (click)="goToCheckout()"
+                class="relative p-2.5 rounded-full hover:bg-gray-100 transition-colors group">
+                <i class="pi pi-shopping-cart text-xl text-gray-600 group-hover:text-primary transition-colors"></i>
+
+                <span *ngIf="(cartCount$ | async) ?? 0 > 0"
+                    class="absolute top-0 right-0 -mt-0.5 -mr-0.5 bg-primary text-white text-[10px] font-bold h-5 w-5 flex items-center justify-center rounded-full shadow-sm animate-bounce-short">
+                    {{ cartCount$ | async }}
+                </span>
+            </button>
+        </div>
+    </header>
+
+    <main class="flex-1 container mx-auto px-4 py-6 md:py-8 w-full">
+        <router-outlet></router-outlet>
+    </main>
+
+    <footer class="bg-white border-t border-gray-200 mt-auto">
+        <div class="container mx-auto px-4 py-8 text-center">
+            <p class="text-sm text-gray-400">Powered by <strong class="text-gray-600">SaaS POS</strong></p>
+            <p *ngIf="shopConfig" class="text-xs text-gray-300 mt-2">{{ shopConfig.shopName }} © {{ currentYear }}</p>
+        </div>
+    </footer>
+</div>

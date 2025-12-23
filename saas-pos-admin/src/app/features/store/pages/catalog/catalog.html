@@ -1,0 +1,64 @@
+<div class="mb-8 text-center md:text-left">
+    <h2 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2">Catálogo</h2>
+    <p class="text-gray-500">Explora nuestros productos disponibles</p>
+</div>
+
+<div *ngIf="loading" class="flex justify-center py-20">
+    <i class="pi pi-spin pi-spinner text-4xl text-primary"></i>
+</div>
+
+<div *ngIf="!loading && products.length === 0"
+    class="text-center py-20 bg-white rounded-2xl shadow-sm border border-dashed border-gray-200">
+    <i class="pi pi-box text-4xl text-gray-300 mb-4"></i>
+    <p class="text-gray-500 font-medium">No hay productos disponibles por ahora.</p>
+</div>
+
+<div *ngIf="!loading && products.length > 0"
+    class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+
+    <div *ngFor="let product of products"
+        class="bg-white rounded-xl shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden border border-gray-100 flex flex-col group h-full">
+
+        <div class="relative aspect-square bg-gray-100 overflow-hidden">
+            <img [src]="product.imageUrl ? product.imageUrl : 'https://placehold.co/600x600/f3f4f6/9ca3af?text=Sin+Imagen'"
+                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                alt="{{ product.name }}" (error)="onImageError($event)">
+
+            <div *ngIf="product.lowStock"
+                class="absolute top-2 left-2 bg-amber-100 text-amber-800 text-xs font-bold px-2 py-1 rounded-full">
+                Pocas unidades
+            </div>
+        </div>
+
+        <div class="p-4 flex flex-col flex-1">
+            <span class="text-xs text-gray-400 font-medium uppercase tracking-wider mb-1">
+                {{ product.categoryName || 'General' }}
+            </span>
+
+            <h3 class="font-bold text-gray-800 text-lg leading-tight mb-1 line-clamp-2">
+                {{ product.name }}
+            </h3>
+
+            <p class="text-sm text-gray-500 mb-4 line-clamp-2 flex-1">
+                {{ product.description }}
+            </p>
+
+            <div class="flex items-end justify-between mt-auto pt-3 border-t border-gray-50">
+                <div class="flex flex-col">
+                    <span class="text-xs text-gray-400">Precio</span>
+                    <span class="text-xl font-black text-gray-900">
+                        {{ product.price | currency:'CLP':'symbol-narrow':'1.0-0' }}
+                    </span>
+                </div>
+
+                <button (click)="addToCart(product)"
+                    class="w-10 h-10 rounded-full bg-gray-900 text-white hover:bg-primary flex items-center justify-center transition-colors shadow-lg active:scale-95 cursor-pointer">
+                    <i class="pi pi-plus font-bold"></i>
+                </button>
+
+                <p-toast position="bottom-center"
+                    [breakpoints]="{'920px': {width: '90%', right: '0', left: '0'}}"></p-toast>
+            </div>
+        </div>
+    </div>
+</div>

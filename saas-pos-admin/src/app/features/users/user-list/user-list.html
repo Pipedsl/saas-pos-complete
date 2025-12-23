@@ -24,7 +24,7 @@
                     </tr>
                 </ng-template>
                 <ng-template pTemplate="body" let-user>
-                    <tr class="border-b border-gray-200 dark:border-gray-800 hover:dark:bg-gray-900 transition-colors">
+                    <tr class="border-b border-gray-200 dark:border-gray-800 hover:bg-darkbg transition-colors">
                         <td class="font-bold text-textmain">{{ user.fullName }}</td>
                         <td class="text-textsec">{{ user.email }}</td>
                         <td>
@@ -41,7 +41,7 @@
                 </ng-template>
                 <ng-template pTemplate="emptymessage">
                     <tr>
-                        <td colspan="4" class="text-center p-8 text-gray-500">No hay usuarios.</td>
+                        <td colspan="4" class="text-center p-8 text-textsec">No hay usuarios.</td>
                     </tr>
                 </ng-template>
             </p-table>
@@ -67,7 +67,7 @@
                 <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-text p-button-secondary"></button>
             </div>
 
-            <div *ngIf="users.length === 0 && !loading" class="text-center p-10 text-gray-500">
+            <div *ngIf="users.length === 0 && !loading" class="text-center p-10 text-textsec">
                 <i class="pi pi-users text-4xl mb-2"></i>
                 <p>No hay equipo</p>
             </div>
@@ -83,20 +83,19 @@
 
         <div class="flex flex-col gap-2">
             <label class="text-textsec text-sm">Nombre Completo</label>
-            <input pInputText formControlName="fullName"
-                class="dark:bg-gray-900 border-gray-700 text-textmain w-full" />
+            <input pInputText formControlName="fullName" class="bg-darkbg border-gray-700 text-textmain w-full" />
         </div>
 
         <div class="flex flex-col gap-2">
             <label class="text-textsec text-sm">Correo Electrónico</label>
             <input pInputText formControlName="email" type="email"
-                class="dark:bg-gray-900 border-gray-700 text-textmain w-full" />
+                class="bg-darkbg border-gray-700 text-textmain w-full" />
         </div>
 
         <div class="flex flex-col gap-2">
             <label class="text-textsec text-sm">Contraseña Inicial</label>
             <p-password formControlName="password" [feedback]="false" [toggleMask]="true" styleClass="w-full"
-                inputStyleClass="dark:bg-gray-900 border-gray-700 text-textmain w-full"></p-password>
+                inputStyleClass="bg-darkbg border-gray-700 text-textmain w-full"></p-password>
         </div>
 
         <div class="flex flex-col gap-2">
@@ -104,7 +103,7 @@
             <p-autocomplete formControlName="selectedRole" [suggestions]="filteredRoles"
                 (completeMethod)="filterRoles($event)" [dropdown]="true" field="label" [forceSelection]="true"
                 placeholder="Seleccione..." styleClass="w-full"
-                inputStyleClass="w-full dark:bg-gray-900 border-gray-700 text-textmain">
+                inputStyleClass="w-full bg-darkbg border-gray-700 text-textmain">
             </p-autocomplete>
         </div>
 
