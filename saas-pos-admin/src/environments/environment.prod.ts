@@ -5,7 +5,7 @@ export const environment = {
     apiUrl: 'https://saas-pos-api-production.up.railway.app',
 
     firebase: {
-        apiKey: "AIzaSyCR-eEFK6dUcEdqymO6f0Grjb6RlPMq5nk",
+        apiKey: "AIzaSyAZdglOfX-XIKk6_nSDZ4gc_eo1JLi5reM",
         authDomain: "despensa-inteligente-c1f9d.firebaseapp.com",
         projectId: "despensa-inteligente-c1f9d",
         storageBucket: "despensa-inteligente-c1f9d.firebasestorage.app",
