@@ -25,14 +25,20 @@ public class ProductController {
     private final CategoryRepository categoryRepository;
     private final SupplierRepository supplierRepository;
     private final SaleItemRepository saleItemRepository;
+    private final WebOrderRepository webOrderRepository;
+    private final WebOrderItemRepository webOrderItemRepository;
+    private final ProductPriceHistoryRepository productPriceHistoryRepository;
 
-    public ProductController(ProductRepository productRepository, UserRepository userRepository, TenantRepository tenantRepository, CategoryRepository categoryRepository, SupplierRepository supplierRepository, SaleItemRepository saleItemRepository) {
+    public ProductController(ProductRepository productRepository, UserRepository userRepository, TenantRepository tenantRepository, CategoryRepository categoryRepository, SupplierRepository supplierRepository, SaleItemRepository saleItemRepository, WebOrderRepository webOrderRepository, WebOrderItemRepository webOrderItemRepository, ProductPriceHistoryRepository productPriceHistoryRepository) {
         this.productRepository = productRepository;
         this.userRepository = userRepository;
         this.tenantRepository = tenantRepository;
         this.categoryRepository = categoryRepository;
         this.supplierRepository = supplierRepository;
         this.saleItemRepository = saleItemRepository;
+        this.webOrderRepository = webOrderRepository;
+        this.webOrderItemRepository = webOrderItemRepository;
+        this.productPriceHistoryRepository = productPriceHistoryRepository;
     }
 
     //GET: Listar mis productos
@@ -200,20 +206,53 @@ public class ProductController {
         }
 
         if (force) {
+            try {
             // --- HARD DELETE (Destructivo) ---
-            // 1. Borrar historial de items de venta de este producto
-            saleItemRepository.deleteByProductId(id);
+                // 1. Borrar historial de items de venta de este producto
+
+                webOrderRepository.deleteByProductId(id);
+                // 1. Borrar items del e-commerce vinculados
+                webOrderItemRepository.deleteByProductId(id);
+
+                // 2. Borrar items de ventas POS vinculados
+                saleItemRepository.deleteByProductId(id);
+
 
             // 2. Borrar el producto físicamente
-            productRepository.delete(product);
+                productRepository.deleteHard(id);
 
             return ResponseEntity.ok().body("{\"message\": \"Producto y su historial eliminados definitivamente.\"}");
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                return ResponseEntity.status(409).body("No se pudo eliminar: " + e.getMessage());
+            }
+
+
         } else {
             // --- SOFT DELETE (Archivar) ---
-            product.setActive(false);
-            productRepository.save(product);
+            productRepository.deleteById(id);
             return ResponseEntity.ok().body("{\"message\": \"Producto archivado correctamente.\"}");
         }
+    }
+
+    @PatchMapping("/{id}/activate")
+    public ResponseEntity<?> activateProduct(@PathVariable UUID id) {
+        UUID tenantId = getCurrentTenantId();
+
+        // CAMBIO IMPORTANTE: Usamos findAnyStatusById en lugar de findById
+        Product product = productRepository.findAnyStatusById(id)
+                .orElseThrow(() -> new RuntimeException("Producto no encontrado"));
+
+        // Verificamos que pertenezca a tu empresa
+        if (!product.getTenantId().equals(tenantId)) {
+            return ResponseEntity.status(403).body("No tienes permiso");
+        }
+
+        // Si ya lo encontramos y validamos, lo reactivamos
+        productRepository.activateProduct(id);
+
+        return ResponseEntity.ok().body("{\"message\": \"Producto reactivado exitosamente.\"}");
     }
 
     @GetMapping("/low-stock")
@@ -304,6 +343,7 @@ public class ProductController {
         dto.setAttributes(p.getAttributes());
         dto.setMeasurementUnit(p.getMeasurementUnit());
         dto.setImageUrl(p.getImageUrl());
+        dto.setIsActive(p.isActive());
         if (p.getCategory() != null) {
             dto.setCategoryId(p.getCategory().getId());
             dto.setCategoryName(p.getCategory().getName());

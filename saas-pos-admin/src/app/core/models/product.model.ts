@@ -24,7 +24,7 @@ export interface Product {
     supplierId?: string;
     supplierName?: string;
 
-    isActive: boolean;
+    isActive?: boolean;
     imageUrl?: string;
 
 }

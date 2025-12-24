@@ -53,4 +53,9 @@ export class ProductsService {
     getLowStockProducts(): Observable<Product[]> {
         return this.http.get<Product[]>(`${this.apiUrl}/low-stock`);
     }
+
+    activateProduct(id: string): Observable<any> {
+        // Asegúrate de que 'this.apiUrl' apunte a '/api/products'
+        return this.http.patch(`${this.apiUrl}/${id}/activate`, {});
+    }
 }

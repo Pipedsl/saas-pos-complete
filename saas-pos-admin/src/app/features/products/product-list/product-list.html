@@ -45,15 +45,23 @@
                     </ng-template>
 
                     <ng-template pTemplate="body" let-product>
-                        <tr
-                            class="border-b border-gray-200 dark:border-gray-800 hover:dark:bg-gray-900 transition-colors">
+                        <tr class="border-b border-gray-200 dark:border-gray-800 transition-colors"
+                            [ngClass]="{'hover:dark:bg-gray-900': product.isActive, 'bg-gray-100 dark:bg-gray-900/40 opacity-70 grayscale': !product.isActive}">
+
                             <td>
                                 <div
-                                    class="w-30 h-30 rounded overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                                    class="w-30 h-30 rounded overflow-hidden bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 relative">
                                     <img [src]="product.imageUrl ? product.imageUrl : 'https://placehold.co/100x100/f3f4f6/9ca3af?text=No+Img'"
                                         class="w-full h-full object-cover" alt="Prod">
+
+                                    <div *ngIf="!product.isActive"
+                                        class="absolute inset-0 flex items-center justify-center bg-black/10">
+                                        <span
+                                            class="bg-gray-800 text-white text-[10px] px-1 rounded font-bold uppercase">Archivado</span>
+                                    </div>
                                 </div>
                             </td>
+
                             <td class="font-mono text-secondary">{{ product.sku }}</td>
                             <td>
                                 <p-tag [value]="product.categoryName || 'Sin Cat'" severity="info"
@@ -78,16 +86,31 @@
                                     [severity]="product.stockCurrent <= product.stockMin ? 'danger' : 'success'">
                                 </p-tag>
                             </td>
-                            <td>
-                                <button pButton icon="pi pi-pencil"
-                                    class="p-button-rounded p-button-text p-button-warning mr-2"
-                                    [routerLink]="['/products/edit', product.id]">
-                                </button>
 
-                                <button pButton icon="pi pi-trash"
-                                    class="p-button-rounded p-button-text p-button-danger"
-                                    (click)="deleteProduct(product)">
-                                </button>
+                            <td>
+                                <ng-container *ngIf="product.isActive !== false">
+                                    <button pButton icon="pi pi-pencil"
+                                        class="p-button-rounded p-button-text p-button-warning mr-2"
+                                        [routerLink]="['/products/edit', product.id]">
+                                    </button>
+
+                                    <button pButton icon="pi pi-trash"
+                                        class="p-button-rounded p-button-text p-button-danger"
+                                        (click)="deleteProduct(product)">
+                                    </button>
+                                </ng-container>
+
+                                <ng-container *ngIf="product.isActive === false">
+                                    <button pButton label="Restaurar" icon="pi pi-refresh"
+                                        class="p-button-rounded p-button-outlined p-button-success p-button-sm mr-2 font-bold text-xs"
+                                        (click)="restoreProduct(product)">
+                                    </button>
+
+                                    <button pButton icon="pi pi-times"
+                                        class="p-button-rounded p-button-text p-button-secondary text-gray-500 hover:text-red-500"
+                                        pTooltip="Eliminar Definitivamente" (click)="deleteProduct(product)">
+                                    </button>
+                                </ng-container>
                             </td>
                         </tr>
                     </ng-template>
@@ -106,12 +129,20 @@
         <div class="md:hidden space-y-3 pb-20">
 
             <div *ngFor="let product of products"
-                class="bg-cardbg p-4 rounded-lg border border-gray-200 dark:border-gray-800 shadow-md">
+                class="p-4 rounded-lg border border-gray-200 dark:border-gray-800 shadow-md transition-all"
+                [ngClass]="product.isActive !== false ? 'bg-cardbg' : 'bg-gray-100 dark:bg-gray-900/50 opacity-75 grayscale'">
+
                 <div class="flex justify-between items-start mb-2">
                     <div>
-                        <span
-                            class="text-xs font-mono text-primary dark:bg-gray-900 px-2 py-1 rounded border border-gray-700">{{
-                            product.sku }}</span>
+                        <div class="flex gap-2 items-center">
+                            <span
+                                class="text-xs font-mono text-primary dark:bg-gray-900 px-2 py-1 rounded border border-gray-700">
+                                {{ product.sku }}
+                            </span>
+                            <span *ngIf="!product.isActive"
+                                class="text-[10px] bg-gray-700 text-white px-2 py-0.5 rounded uppercase font-bold">Archivado</span>
+                        </div>
+
                         <h3 class="text-textmain font-bold mt-2 text-lg leading-tight">{{ product.name }}</h3>
                         <div class="flex items-center gap-2 mt-1">
                             <span class="text-xs text-textsec">{{ product.categoryName || 'Sin Categoría' }}</span>
@@ -126,18 +157,29 @@
                 <div class="flex justify-between items-center mt-3 border-t border-gray-200 dark:border-gray-800 pt-3">
                     <div class="flex flex-col">
                         <span class="text-xs text-gray-500">Precio Venta</span>
-                        <span class="text-xl font-bold text-emerald-400">{{ getPriceWithTax(product) |
-                            currency:'CLP':'symbol-narrow':'1.0-0' }}</span>
+                        <span class="text-xl font-bold text-emerald-400">
+                            {{ getPriceWithTax(product) | currency:'CLP':'symbol-narrow':'1.0-0' }}
+                        </span>
                     </div>
 
                     <div class="flex gap-2">
-                        <button pButton icon="pi pi-pencil" class="p-button-rounded p-button-outlined p-button-warning"
-                            [routerLink]="['/products/edit', product.id]">
-                        </button>
+                        <ng-container *ngIf="product.isActive !== false">
+                            <button pButton icon="pi pi-pencil"
+                                class="p-button-rounded p-button-outlined p-button-warning"
+                                [routerLink]="['/products/edit', product.id]">
+                            </button>
 
-                        <button pButton icon="pi pi-trash" class="p-button-rounded p-button-outlined p-button-danger"
-                            (click)="deleteProduct(product)">
-                        </button>
+                            <button pButton icon="pi pi-trash"
+                                class="p-button-rounded p-button-outlined p-button-danger"
+                                (click)="deleteProduct(product)">
+                            </button>
+                        </ng-container>
+
+                        <ng-container *ngIf="product.isActive === false">
+                            <button pButton label="Restaurar" icon="pi pi-refresh"
+                                class="p-button-rounded p-button-success font-bold" (click)="restoreProduct(product)">
+                            </button>
+                        </ng-container>
                     </div>
                 </div>
             </div>

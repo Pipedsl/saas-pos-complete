@@ -122,4 +122,30 @@ export class ProductListComponent implements OnInit {
     const tax = p.taxPercent || 19;
     return p.priceNeto * (1 + tax / 100);
   }
+
+  restoreProduct(product: Product) {
+    this.loading = true;
+    // Asumiendo que agregaste 'activateProduct' en tu service, 
+    // si no, usa una llamada http directa o agrégalo al service.
+    this.productsService.activateProduct(product.id).subscribe({
+      next: () => {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Restaurado',
+          detail: `El producto ${product.name} está activo nuevamente`
+        });
+        product.isActive = true; // Actualizamos la vista inmediatamente
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error(err);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Error',
+          detail: 'No se pudo reactivar el producto'
+        });
+        this.loading = false;
+      }
+    });
+  }
 }

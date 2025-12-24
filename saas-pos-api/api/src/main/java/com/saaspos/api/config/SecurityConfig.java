@@ -70,7 +70,7 @@ public class SecurityConfig {
         // Esto permite que funcione en local Y en producción sin tocar el código Java.
         configuration.setAllowedOrigins(List.of(allowedOrigins.split(",")));
 
-        configuration.setAllowedMethods(List.of("GET","POST","PUT","DELETE","OPTIONS"));
+        configuration.setAllowedMethods(List.of("GET","POST","PUT","PATCH","DELETE","OPTIONS"));
         configuration.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         configuration.setAllowCredentials(true);
 

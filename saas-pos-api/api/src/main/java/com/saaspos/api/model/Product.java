@@ -4,17 +4,20 @@ import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.SQLDelete;
 import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 @Data
 @Entity
 @Table(name = "products")
+@SQLDelete(sql = "UPDATE products SET is_active = false WHERE id = ?")
 public class Product {
 
     @ManyToOne(fetch = FetchType.EAGER) // Eager para mostrar el nombre de la categoría en la tabla
@@ -94,5 +97,8 @@ public class Product {
 
     @Column(name = "description_web")
     private String descriptionWeb;
+
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<ProductPriceHistory> priceHistory;
 
 }
