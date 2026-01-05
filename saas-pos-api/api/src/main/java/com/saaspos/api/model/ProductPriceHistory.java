@@ -6,6 +6,7 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "product_price_histories")
@@ -50,5 +51,5 @@ public class ProductPriceHistory {
     // CRÍTICO PARA SAAS MULTI-TENANT
     // -------------------------------------------------
     @Column(name = "tenant_id", nullable = false)
-    private String tenantId;
+    private UUID tenantId;
 }

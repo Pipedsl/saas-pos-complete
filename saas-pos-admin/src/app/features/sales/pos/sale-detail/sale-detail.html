@@ -1,0 +1,123 @@
+<p-toast position="top-center"></p-toast>
+
+<div class="p-6 max-w-4xl mx-auto text-textmain min-h-screen">
+
+    <div *ngIf="loading" class="text-center py-20">
+        <i class="pi pi-spin pi-spinner text-4xl text-primary"></i>
+    </div>
+
+    <div *ngIf="!loading && sale">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+            <div class="flex items-center gap-4">
+                <button pButton icon="pi pi-arrow-left" routerLink="/pos/sales"
+                    class="p-button-text p-button-rounded p-button-secondary"></button>
+                <div>
+                    <h1 class="text-2xl font-bold">Ticket #{{ sale.saleNumber || '---' }}</h1>
+                    <p class="text-sm text-textsec">{{ sale.createdAt | date:'medium' }}</p>
+                </div>
+            </div>
+
+            <div class="flex gap-2">
+                <button *ngIf="!isEditing" pButton label="Editar Ticket" icon="pi pi-pencil" (click)="toggleEdit()"
+                    class="p-button-outlined p-button-warning"></button>
+
+                <button *ngIf="isEditing" pButton label="Cancelar" icon="pi pi-times" (click)="toggleEdit()"
+                    class="p-button-danger p-button-text"></button>
+
+                <button *ngIf="isEditing" pButton label="Guardar" icon="pi pi-check" (click)="showReasonDialog = true"
+                    class="p-button-success"></button>
+            </div>
+        </div>
+
+        <div *ngIf="sale.wasEdited"
+            class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-700 p-4 rounded-lg mb-6 flex items-start gap-3">
+            <i class="pi pi-info-circle text-yellow-600 mt-1"></i>
+            <div>
+                <p class="font-bold text-yellow-800 dark:text-yellow-200">Ticket Editado</p>
+                <p class="text-sm text-yellow-700 dark:text-yellow-300">Motivo: {{ sale.editReason }}</p>
+            </div>
+        </div>
+
+        <div *ngIf="isEditing" class="mb-4">
+            <p-autoComplete [(ngModel)]="productSearchQuery" [suggestions]="productSuggestions"
+                (completeMethod)="searchProduct($event)" field="name" (onSelect)="addProduct($event)"
+                placeholder="Buscar producto para agregar..." [style]="{'width':'100%'}"
+                inputStyleClass="w-full bg-cardbg text-textmain" [minLength]="1" [delay]="0">
+                <ng-template let-product pTemplate="item">
+                    <div class="flex justify-between w-full gap-4">
+                        <span class="font-bold">{{product.name}}</span>
+                        <span class="text-primary">{{product.priceFinal |
+                            currency:'CLP':'symbol-narrow':'1.0-0'}}</span>
+                    </div>
+                </ng-template>
+            </p-autoComplete>
+        </div>
+
+        <div class="bg-cardbg rounded-xl shadow overflow-hidden border border-gray-200 dark:border-gray-700">
+            <p-table [value]="isEditing ? tempItems : sale.items" styleClass="p-datatable-sm">
+                <ng-template pTemplate="header">
+                    <tr class="bg-gray-50 dark:bg-slate-800 text-sm">
+                        <th>Producto</th>
+                        <th class="text-center">Cant.</th>
+                        <th class="text-right">Precio</th>
+                        <th class="text-right">Total</th>
+                        <th *ngIf="isEditing" class="w-10"></th>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="body" let-item let-i="rowIndex">
+                    <tr class="border-b border-gray-100 dark:border-gray-700">
+                        <td class="text-textmain">{{ item.product?.name || 'Producto' }}</td>
+
+                        <td class="text-center">
+                            <div *ngIf="isEditing" class="flex justify-center items-center gap-2">
+                                <button (click)="updateQty(i, -1)"
+                                    class="w-6 h-6 flex items-center justify-center bg-gray-200 dark:bg-slate-700 rounded text-textmain">-</button>
+                                <span class="font-bold w-6 text-textmain">{{ item.quantity }}</span>
+                                <button (click)="updateQty(i, 1)"
+                                    class="w-6 h-6 flex items-center justify-center bg-gray-200 dark:bg-slate-700 rounded text-textmain">+</button>
+                            </div>
+                            <span *ngIf="!isEditing" class="font-bold text-textmain">{{ item.quantity }}</span>
+                        </td>
+
+                        <td class="text-right text-textsec">{{ item.unitPrice | currency:'CLP':'symbol-narrow':'1.0-0'
+                            }}</td>
+                        <td class="text-right font-bold text-textmain">{{ item.total |
+                            currency:'CLP':'symbol-narrow':'1.0-0' }}</td>
+
+                        <td *ngIf="isEditing" class="text-right">
+                            <button pButton icon="pi pi-trash" class="p-button-danger p-button-text p-button-sm"
+                                (click)="removeItem(i)"></button>
+                        </td>
+                    </tr>
+                </ng-template>
+                <ng-template pTemplate="footer">
+                    <tr>
+                        <td colspan="3" class="text-right font-bold text-lg text-textmain pr-4">TOTAL</td>
+                        <td class="text-right font-bold text-xl text-primary">
+                            {{ (isEditing ? calculateTotal() : sale.totalAmount) |
+                            currency:'CLP':'symbol-narrow':'1.0-0' }}
+                        </td>
+                        <td *ngIf="isEditing"></td>
+                    </tr>
+                </ng-template>
+            </p-table>
+        </div>
+    </div>
+</div>
+
+<p-dialog header="Motivo de la Edición" [(visible)]="showReasonDialog" [modal]="true" [style]="{width: '400px'}"
+    styleClass="bg-cardbg text-textmain">
+    <div class="flex flex-col gap-3 py-2">
+        <label class="font-bold text-textsec">¿Por qué modificas este ticket?</label>
+        <textarea pInputTextarea [(ngModel)]="editReason" rows="3" class="w-full"
+            placeholder="Ej: Devolución de producto defectuoso"></textarea>
+        <small class="text-textsec">Este cambio quedará registrado en el historial.</small>
+    </div>
+    <ng-template pTemplate="footer">
+        <div class="flex justify-end gap-2">
+            <button pButton label="Cancelar" (click)="showReasonDialog = false" class="p-button-text"></button>
+            <button pButton label="Confirmar Edición" (click)="confirmSave()" [disabled]="!editReason"
+                class="p-button-primary"></button>
+        </div>
+    </ng-template>
+</p-dialog>

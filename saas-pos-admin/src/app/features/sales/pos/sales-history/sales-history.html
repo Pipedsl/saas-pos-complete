@@ -1,0 +1,51 @@
+<div class="p-6 min-h-screen bg-darkbg text-textmain">
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">Historial de Ventas POS</h1>
+    </div>
+
+    <div class="bg-cardbg rounded-xl shadow border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <p-table [value]="sales" [loading]="loading" [paginator]="true" [rows]="10" styleClass="p-datatable-sm"
+            [tableStyle]="{'min-width': '50rem'}">
+
+            <ng-template pTemplate="header">
+                <tr class="bg-gray-50 dark:bg-slate-800 text-sm">
+                    <th>Ticket #</th>
+                    <th>Fecha</th>
+                    <th class="text-right">Total</th>
+                    <th class="text-center">Estado</th>
+                    <th class="text-right">Acciones</th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-sale>
+                <tr class="border-b border-gray-100 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800/50">
+                    <td class="font-mono font-bold">{{ sale.saleNumber || '---' }}</td>
+                    <td>{{ sale.createdAt | date:'medium' }}</td>
+                    <td class="text-right font-bold text-primary">
+                        {{ sale.totalAmount | currency:'CLP':'symbol-narrow':'1.0-0' }}
+                    </td>
+                    <td class="text-center">
+                        <p-tag [value]="sale.status"
+                            [severity]="sale.status === 'COMPLETED' ? 'success' : 'warn'"></p-tag>
+                        <div *ngIf="sale.wasEdited"
+                            class="mt-1 text-[10px] text-yellow-600 font-bold uppercase tracking-wider bg-yellow-100 inline-block px-1 rounded border border-yellow-200">
+                            Editado
+                        </div>
+                    </td>
+                    <td class="text-right">
+                        <button pButton icon="pi pi-eye" [routerLink]="['/pos/sales', sale.id]"
+                            class="p-button-text p-button-sm p-button-secondary" pTooltip="Ver Detalle"></button>
+                    </td>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="5" class="text-center py-8 text-textsec">
+                        No hay ventas registradas.
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+</div>

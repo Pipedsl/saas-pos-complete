@@ -35,6 +35,15 @@ public class Sale {
     @Column(name = "status")
     private String status = "COMPLETED"; // COMPLETED, CANCELLED
 
+    @Column(name = "was_edited")
+    private boolean wasEdited = false;
+
+    @Column(name = "edited_by_user_id")
+    private UUID editedByUserId;
+
+    @Column(name = "edit_reason")
+    private String editReason;
+
     // Relación con los ítems (Cascada: si guardo venta, guarda ítems)
     @OneToMany(mappedBy = "sale", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SaleItem> items = new ArrayList<>();

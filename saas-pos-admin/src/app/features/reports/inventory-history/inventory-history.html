@@ -1,0 +1,115 @@
+<div class="p-6 min-h-screen bg-darkbg text-textmain">
+
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <h1 class="text-2xl font-bold">Historial de Movimientos</h1>
+        <button pButton label="Exportar CSV" icon="pi pi-download" (click)="downloadCsv()"
+            class="p-button-outlined p-button-success font-bold"></button>
+    </div>
+
+    <div
+        class="bg-cardbg p-4 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 mb-6 grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+
+        <div class="flex flex-col gap-2 md:col-span-2">
+            <label class="text-sm font-bold text-textsec">Rango de Fechas</label>
+            <p-date-picker [(ngModel)]="rangeDates" selectionMode="range" [readonlyInput]="true"
+                placeholder="Seleccionar rango..." [showIcon]="true" styleClass="w-full" inputStyleClass="w-full"
+                dateFormat="dd/mm/yy">
+            </p-date-picker>
+        </div>
+
+        <div class="flex flex-col gap-2">
+            <label class="text-sm font-bold text-textsec">Categoría</label>
+            <p-select [options]="categories" [(ngModel)]="selectedCategory" optionLabel="name" [showClear]="true"
+                placeholder="Todas las categorías" styleClass="w-full" emptyMessage="No hay categorías disponibles">
+            </p-select>
+        </div>
+
+        <div class="flex">
+            <button pButton label="Filtrar" icon="pi pi-search" (click)="loadLogs()" class="w-full font-bold"></button>
+        </div>
+    </div>
+
+    <div class="bg-cardbg rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <p-table [value]="logs" [loading]="loading" [paginator]="true" [rows]="10" styleClass="p-datatable-sm"
+            [tableStyle]="{'min-width': '60rem'}" [rowsPerPageOptions]="[10, 20, 50]">
+
+            <ng-template pTemplate="header">
+                <tr class="bg-gray-50 dark:bg-slate-800 text-sm">
+                    <th>Fecha</th>
+                    <th>Producto</th>
+                    <th>Acción</th>
+                    <th class="text-right">Cambio</th>
+                    <th class="text-right">Stock Final</th>
+                    <th>Usuario</th>
+                    <th>Motivo / Detalle</th>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="body" let-log>
+                <tr
+                    class="border-b border-gray-100 dark:border-gray-700 text-sm hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors">
+                    <td>
+                        <span class="font-medium block text-textmain">{{ log.createdAt | date:'dd/MM/yyyy' }}</span>
+                        <span class="text-xs text-textsec">{{ log.createdAt | date:'HH:mm' }}</span>
+                    </td>
+                    <td>
+                        <span class="font-bold text-primary">{{ log.productNameSnapshot }}</span>
+                    </td>
+                    <td>
+                        <p-tag [value]="log.actionType" [severity]="getActionSeverity(log.actionType)"
+                            styleClass="text-xs"></p-tag>
+                    </td>
+                    <td class="text-right font-bold"
+                        [ngClass]="{'text-green-500': log.quantityChange > 0, 'text-red-500': log.quantityChange < 0}">
+                        {{ log.quantityChange > 0 ? '+' : ''}}{{ log.quantityChange }}
+                    </td>
+                    <td class="text-right text-textsec font-mono">
+                        {{ log.newStock }}
+                    </td>
+                    <td class="text-textsec text-xs">
+                        {{ log.userNameSnapshot }}
+                    </td>
+                    <td class="max-w-[200px]">
+                        <div class="flex flex-col gap-1.5">
+
+                            <p class="truncate text-xs text-textmain font-medium" [pTooltip]="log.reason"
+                                tooltipPosition="top">
+                                {{ log.reason }}
+                            </p>
+
+                            <div class="flex gap-1">
+
+                                <span *ngIf="log.saleId" pTooltip="Ticket: {{log.saleId}}"
+                                    class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-green-100 text-green-700 border border-green-200 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800">
+                                    <i class="pi pi-receipt mr-1 text-[9px]"></i> POS
+                                </span>
+
+                                <span *ngIf="log.webOrderId" pTooltip="Orden: {{log.webOrderId}}"
+                                    class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-purple-100 text-purple-700 border border-purple-200 dark:bg-purple-900/30 dark:text-purple-400 dark:border-purple-800">
+                                    <i class="pi pi-globe mr-1 text-[9px]"></i> WEB
+                                </span>
+
+                                <span *ngIf="!log.saleId && !log.webOrderId"
+                                    class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-bold bg-orange-100 text-orange-700 border border-orange-200 dark:bg-orange-900/30 dark:text-orange-400 dark:border-orange-800">
+                                    <i class="pi pi-user-edit mr-1 text-[9px]"></i> MANUAL
+                                </span>
+
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+
+            <ng-template pTemplate="emptymessage">
+                <tr>
+                    <td colspan="7" class="text-center py-8 text-textsec">
+                        <div class="flex flex-col items-center">
+                            <i class="pi pi-inbox text-4xl mb-2 opacity-50"></i>
+                            <p>No se encontraron movimientos en este rango.</p>
+                        </div>
+                    </td>
+                </tr>
+            </ng-template>
+        </p-table>
+    </div>
+</div>

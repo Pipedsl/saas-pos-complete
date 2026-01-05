@@ -116,9 +116,17 @@
 
                     <div class="flex-1 min-w-0 mr-3">
                         <div class="font-bold text-textmain text-sm truncate">{{ item.product.name }}</div>
-                        <div class="text-xs text-textsec mt-1">
-                            {{ item.unitPrice | currency:'CLP':'symbol-narrow':'1.0-0' }}
+
+                        <div class="text-xs text-textsec mt-1 flex items-center gap-2">
+                            <span
+                                class="cursor-pointer hover:text-primary border-b border-dashed border-gray-600 hover:border-primary transition-colors"
+                                (click)="initiatePriceEdit(item)" pTooltip="Editar Precio">
+                                {{ item.unitPrice | currency:'CLP':'symbol-narrow':'1.0-0' }}
+                            </span>
                             <span class="font-bold">/ {{ item.product.measurementUnit === 'KG' ? 'kg' : 'un' }}</span>
+
+                            <i *ngIf="item.customPrice" class="pi pi-pencil text-[10px] text-yellow-500"
+                                pTooltip="Precio Modificado"></i>
                         </div>
                     </div>
 
@@ -324,5 +332,45 @@
             class="w-full p-button-success font-bold text-xl py-4 shadow-lg shadow-green-900/20"
             [disabled]="paymentMethod === 'CASH' && changeAmount < 0">
         </button>
+    </div>
+</p-dialog>
+
+<p-dialog header="Autorización Requerida" [(visible)]="showPinDialog" [modal]="true" [style]="{width: '300px'}"
+    [closable]="true">
+    <div class="flex flex-col gap-3 text-center pt-2">
+        <i class="pi pi-lock text-4xl text-primary mb-2"></i>
+        <p class="text-sm text-textsec">Se requiere PIN de Administrador para modificar precios.</p>
+
+        <p-password [(ngModel)]="adminPin" [feedback]="false" [toggleMask]="true" styleClass="w-full"
+            inputStyleClass="w-full text-center text-xl font-bold tracking-widest bg-darkbg text-textmain border-gray-700"
+            placeholder="PIN" (keydown.enter)="verifyPinAndExecute()"></p-password>
+
+        <div class="flex justify-center gap-2 mt-4">
+            <button pButton label="Cancelar" (click)="showPinDialog = false"
+                class="p-button-text p-button-secondary"></button>
+            <button pButton label="Autorizar" (click)="verifyPinAndExecute()" class="p-button-primary"></button>
+        </div>
+    </div>
+</p-dialog>
+
+<p-dialog header="Editar Precio" [(visible)]="showPriceEditDialog" [modal]="true" [style]="{width: '300px'}"
+    styleClass="bg-cardbg text-textmain border border-gray-200 dark:border-gray-800">
+    <div class="flex flex-col gap-4 pt-2" *ngIf="itemToEdit">
+        <div class="text-center">
+            <p class="text-sm text-textsec">{{ itemToEdit.product.name }}</p>
+            <p class="text-xs opacity-60">Precio Original: {{ itemToEdit.product.priceFinal |
+                currency:'CLP':'symbol-narrow':'1.0-0' }}</p>
+        </div>
+
+        <div class="flex flex-col gap-2">
+            <label class="text-textmain font-bold">Nuevo Precio Unitario</label>
+            <p-inputNumber [(ngModel)]="newPriceInput" mode="currency" currency="CLP" locale="es-CL" class="w-full"
+                inputStyleClass="w-full text-center text-2xl font-bold bg-darkbg text-textmain border-gray-700 h-12"
+                [min]="0" (keydown.enter)="confirmPriceChange()">
+            </p-inputNumber>
+        </div>
+
+        <button pButton label="Aplicar Cambio" (click)="confirmPriceChange()"
+            class="w-full p-button-success font-bold"></button>
     </div>
 </p-dialog>

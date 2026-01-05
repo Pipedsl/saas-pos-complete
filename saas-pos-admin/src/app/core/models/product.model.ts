@@ -26,5 +26,18 @@ export interface Product {
 
     isActive?: boolean;
     imageUrl?: string;
+    isPublic: boolean; // <--- Nuevo campo
 
+    // --- NUEVOS CAMPOS PARA PACKS ---
+    productType?: 'STANDARD' | 'BUNDLE'; // Por defecto STANDARD
+    bundleItems?: BundleItem[];
+
+}
+
+export interface BundleItem {
+    componentId: string;
+    quantity: number;
+    // Campos visuales (solo lectura)
+    componentName?: string;
+    componentSku?: string;
 }

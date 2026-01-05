@@ -20,8 +20,8 @@ export class CatalogComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private storeService: StoreService,
-    private cartService: CartService, // Inyectar
-    private messageService: MessageService, // Para la notificación
+    public cartService: CartService, // Poner PUBLIC para usarlo en el HTML
+    private messageService: MessageService,
     private cdr: ChangeDetectorRef
   ) { }
 
@@ -54,16 +54,34 @@ export class CatalogComponent implements OnInit {
     event.target.src = 'https://placehold.co/600x600/f3f4f6/9ca3af?text=Sin+Imagen';
   }
 
-  // --- NUEVO MÉTODO ---
-  addToCart(product: PublicProduct) {
-    this.cartService.addToCart(product);
+  // Modificamos para aceptar cambios (+1 o -1)
+  modifyCart(product: PublicProduct, change: number) {
+    if (change > 0) {
+      // Intentar agregar
+      const success = this.cartService.addToCart(product, 1);
+      if (!success) {
+        this.messageService.add({
+          severity: 'warn',
+          summary: 'Stock Limitado',
+          detail: `Solo quedan ${product.stockCurrent} unidades.`,
+          life: 2000
+        });
+      } else {
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Agregado',
+          detail: `+1 ${product.name}`,
+          life: 1000
+        });
+      }
+    } else {
+      // Disminuir
+      this.cartService.updateQuantity(product.id, -1);
+    }
+  }
 
-    // Feedback visual simple
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Agregado',
-      detail: `${product.name} al carrito`,
-      life: 1500
-    });
+  // Helper para el HTML
+  getProductQty(id: string): number {
+    return this.cartService.getQuantity(id);
   }
 }

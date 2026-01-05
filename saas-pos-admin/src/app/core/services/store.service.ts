@@ -5,12 +5,27 @@ import { Observable } from 'rxjs';
 
 export interface PublicShop {
   shopName: string;
+  contactPhone?: string;
   logoUrl: string;
   bannerUrl: string;
   primaryColor: string;
   urlSlug: string;
-  paymentMethods: any;
-  shippingMethods: any;
+  paymentMethods: {
+    cash: boolean;
+    transfer: boolean;
+    cod_shipping: boolean; // <--- Nuevo campo
+    [key: string]: any;
+  };
+  shippingMethods: {
+    pickup: boolean;
+    delivery: boolean;
+    companies: string[]; // <--- AQUÍ ESTÁ LA LISTA DE CÓDIGOS (['starken', 'varmontt'])
+    [key: string]: any;
+  };
+
+  // --- NUEVOS CAMPOS ---
+  recommendedCourier?: string;
+  dispatchDays?: { [key: string]: string[] };
 }
 
 export interface PublicProduct {

@@ -11,6 +11,8 @@ public class PublicShopDto {
     private String primaryColor;
     private String urlSlug;
 
+    private String contactPhone;
+
     // Solo enviamos configuraciones necesarias para la UI (no secretos)
     private Map<String, Object> paymentMethods;
     private Map<String, Object> shippingMethods;

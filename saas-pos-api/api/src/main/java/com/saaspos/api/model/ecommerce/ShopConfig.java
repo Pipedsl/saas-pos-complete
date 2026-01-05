@@ -9,6 +9,7 @@ import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -30,7 +31,10 @@ public class ShopConfig {
     private String shopName;
 
     @Column(name = "primary_color")
-    private String primaryColor = "#000000";
+    private String primaryColor;
+
+    @Column(name = "contact_phone")
+    private String contactPhone; // Ej: 56912345678
 
     @Column(name = "logo_url")
     private String logoUrl;
@@ -52,6 +56,14 @@ public class ShopConfig {
 
     @Column(name = "is_active")
     private boolean isActive = true;
+
+    @Column(name = "recommended_courier")
+    private String recommendedCourier;
+
+    // Mapeo del JSON de días de despacho
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "dispatch_days", columnDefinition = "jsonb")
+    private Map<String, List<String>> dispatchDays;
 
     @CreationTimestamp
     @Column(name = "created_at")

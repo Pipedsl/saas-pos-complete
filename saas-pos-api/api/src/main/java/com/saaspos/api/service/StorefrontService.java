@@ -46,6 +46,7 @@ public class StorefrontService {
         PublicShopDto dto = new PublicShopDto();
         dto.setShopName(config.getShopName());
         dto.setUrlSlug(config.getUrlSlug());
+        dto.setContactPhone(config.getContactPhone());
         dto.setLogoUrl(config.getLogoUrl());
         dto.setBannerUrl(config.getBannerUrl());
         dto.setPrimaryColor(config.getPrimaryColor());
@@ -78,7 +79,22 @@ public class StorefrontService {
         order.setOrderNumber("WEB-" + System.currentTimeMillis() % 10000); // Generador simple temporal
         order.setCustomerName(request.getCustomerName());
         order.setCustomerPhone(request.getCustomerPhone());
-        order.setShippingAddress(request.getCustomerAddress());
+        order.setCustomerEmail(request.getCustomerEmail());
+        order.setCustomerRut(request.getCustomerRut());
+        if ("DELIVERY".equals(request.getDeliveryMethod())) {
+            order.setShippingRegion(request.getRegion());
+            order.setShippingCommune(request.getCommune());
+            order.setShippingStreet(request.getStreetAndNumber());
+
+            // Concatenamos para visualización rápida en tablas antiguas
+            String fullAddr = String.format("%s, %s, %s",
+                    request.getStreetAndNumber(), request.getCommune(), request.getRegion());
+            order.setShippingAddress(fullAddr);
+
+            order.setCourier(request.getCourier());
+        } else {
+            order.setShippingAddress("Retiro en Tienda");
+        }
         order.setPaymentMethod(request.getPaymentMethod());
         order.setShippingMethod(request.getDeliveryMethod());
 
@@ -164,7 +180,11 @@ public class StorefrontService {
         }
         dto.setPrice(finalPrice.setScale(0, RoundingMode.HALF_UP));
 
-        dto.setStockCurrent(p.getStockCurrent());
+        // --- CAMBIO CLAVE AQUÍ ---
+        // En lugar de dto.setStock(p.getStockCurrent());
+        // Usamos el método inteligente:
+        dto.setStockCurrent(p.getEffectiveStock());
+        // -------------------------
         dto.setLowStock(p.getStockCurrent().compareTo(p.getStockMin()) <= 0);
 
         if (p.getCategory() != null) {

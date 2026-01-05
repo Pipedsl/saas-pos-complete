@@ -1,9 +1,17 @@
 import { Injectable } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { CartItem } from '../../../core/models/cart.model';
-import { Product } from '../../../core/models/product.model';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
+import { Product } from '../../../core/models/product.model';
+
+// Actualizamos la interfaz para soportar el precio personalizado
+export interface CartItem {
+    product: Product;
+    quantity: number;
+    unitPrice: number; // El precio activo (ya sea el original o el editado)
+    subtotal: number;
+    customPrice?: number; // Nuevo campo opcional
+}
 
 @Injectable({
     providedIn: 'root'
@@ -25,7 +33,7 @@ export class CartService {
         return this.totalSubject.value;
     }
 
-    // Nuevo: Método para validar stock antes de agregar
+    // Método original con lógica de stock
     addToCart(product: Product, qtyToAdd: number = 1): boolean {
         const currentItems = this.itemsSubject.value;
         const existingItem = currentItems.find(i => i.product.id === product.id);
@@ -36,28 +44,29 @@ export class CartService {
             return false;
         }
 
-        // --- CORRECCIÓN DE PRECIO ---
+        // Calcular precio base (Tu lógica original)
         let finalUnitPrice: number;
-
-        // 1. Si el producto tiene un "Precio Final" definido (Nueva lógica), USARLO.
-        // Esto evita el error de recálculo (100 -> 84 -> 99.96).
         if (product.priceFinal && product.priceFinal > 0) {
             finalUnitPrice = product.priceFinal;
         } else {
-            // 2. Fallback para productos antiguos o lógica manual: Calcular desde neto
             const rawPrice = product.priceNeto * (1 + (product.taxPercent || 19) / 100);
             finalUnitPrice = Math.round(rawPrice);
         }
 
         if (existingItem) {
             existingItem.quantity += qtyToAdd;
-            existingItem.subtotal = existingItem.quantity * finalUnitPrice;
+            // OJO: Si ya tenía un customPrice, lo respetamos. Si no, usamos el calculado.
+            const activePrice = existingItem.customPrice !== undefined ? existingItem.customPrice : finalUnitPrice;
+
+            existingItem.unitPrice = activePrice;
+            existingItem.subtotal = existingItem.quantity * activePrice;
         } else {
             currentItems.push({
                 product: product,
                 quantity: qtyToAdd,
                 unitPrice: finalUnitPrice,
                 subtotal: qtyToAdd * finalUnitPrice
+                // customPrice empieza undefined
             });
         }
 
@@ -65,7 +74,19 @@ export class CartService {
         return true;
     }
 
-    // Nuevo: Disminuir cantidad (sin borrar todo)
+    // --- NUEVO MÉTODO: EDITAR PRECIO (Lógica del PIN) ---
+    updateItemPrice(productId: string, newPrice: number) {
+        const currentItems = this.itemsSubject.value;
+        const item = currentItems.find(i => i.product.id === productId);
+
+        if (item) {
+            item.customPrice = newPrice; // Guardamos que es personalizado
+            item.unitPrice = newPrice;   // Actualizamos el precio activo
+            item.subtotal = item.quantity * newPrice; // Recalcular subtotal
+            this.updateState([...currentItems]);
+        }
+    }
+
     decreaseQuantity(productId: string) {
         const currentItems = this.itemsSubject.value;
         const item = currentItems.find(i => i.product.id === productId);
@@ -75,6 +96,7 @@ export class CartService {
             if (item.quantity <= 0) {
                 this.removeFromCart(productId);
             } else {
+                // Usamos item.unitPrice que ya tiene el precio correcto (custom o base)
                 item.subtotal = Math.round(item.quantity * item.unitPrice);
                 this.updateState(currentItems);
             }
@@ -91,7 +113,6 @@ export class CartService {
     }
 
     private updateState(items: CartItem[]) {
-        // Crear nueva referencia de array para que Angular detecte el cambio
         this.itemsSubject.next([...items]);
         const total = items.reduce((sum, item) => sum + item.subtotal, 0);
         this.totalSubject.next(total);
@@ -102,13 +123,13 @@ export class CartService {
             items: this.getCurrentItems().map(i => ({
                 productId: i.product.id,
                 quantity: i.quantity,
-                unitPrice: i.unitPrice
+                unitPrice: i.unitPrice, // Precio visual (para referencia)
+                customPrice: i.customPrice // IMPORTANTE: Enviar esto al backend para la auditoría
             })),
-            totalAmount: this.getCurrentTotal()
+            totalAmount: this.getCurrentTotal(),
+            notes: `Venta POS - Pago: ${paymentMethod}`
         };
 
         return this.http.post(`${environment.apiUrl}/api/sales`, payload);
     }
-
-
 }

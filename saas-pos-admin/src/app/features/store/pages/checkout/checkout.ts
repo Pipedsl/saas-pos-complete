@@ -6,12 +6,13 @@ import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angula
 import { CartItem, CartService } from '../../../../core/services/cart.service';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { PrimeImportsModule } from '../../../../prime-imports';
-import { Observable } from 'rxjs';
+import { Observable, take } from 'rxjs';
+import { REGIONES_Y_COMUNAS } from '../../../../core/utils/chile-data'; // <--- IMPORTANTE
+import { ShopConfigService } from '../../../../core/services/shop-config.service';
 
 @Component({
   selector: 'app-checkout',
-  imports: [CommonModule, PrimeImportsModule, RouterModule,
-    ReactiveFormsModule],
+  imports: [CommonModule, PrimeImportsModule, RouterModule, ReactiveFormsModule],
   providers: [MessageService],
   templateUrl: './checkout.html',
   styleUrl: './checkout.css',
@@ -25,21 +26,44 @@ export class CheckoutComponent implements OnInit {
   checkoutForm: FormGroup;
   loading = false;
 
+  // Datos Geográficos
+  regiones = REGIONES_Y_COMUNAS;
+  comunasDisponibles: string[] = [];
+
+  courierNames: { [key: string]: string } = {
+    'starken': 'Starken',
+    'chilexpress': 'Chilexpress',
+    'varmontt': 'Varmontt',
+    'blue_express': 'Blue Express',
+    'correos': 'Correos de Chile'
+  };
+
+  availableCouriers: string[] = [];
+
   constructor(
     private cartService: CartService,
     private storeService: StoreService,
+    private shopConfigService: ShopConfigService,
     private route: ActivatedRoute,
     private router: Router,
     private fb: FormBuilder,
     private messageService: MessageService
   ) {
-    // Formulario de datos del cliente
     this.checkoutForm = this.fb.group({
       customerName: ['', [Validators.required, Validators.minLength(3)]],
-      customerPhone: ['', [Validators.required, Validators.pattern('^[0-9+ ]{8,15}$')]], // Validación simple de teléfono
-      deliveryMethod: ['PICKUP', Validators.required], // PICKUP o DELIVERY
-      customerAddress: [''], // Requerido solo si es DELIVERY
-      paymentMethod: ['', Validators.required], // CASH, TRANSFER, etc.
+      customerRut: ['', [Validators.required, Validators.pattern(/^[0-9]+-[0-9kK]{1}$/)]], // Validación simple formato RUT
+      customerPhone: ['', [Validators.required, Validators.pattern(/^[0-9+ ]{8,15}$/)]],
+      customerEmail: ['', [Validators.email]], // Email opcional pero con formato válido
+
+      deliveryMethod: ['PICKUP', Validators.required],
+
+      // Dirección Estructurada
+      region: [''],
+      commune: [''],
+      street: [''], // Calle y número
+
+      courier: [''],
+      paymentMethod: ['', Validators.required],
       notes: ['']
     });
   }
@@ -47,7 +71,7 @@ export class CheckoutComponent implements OnInit {
   ngOnInit() {
     this.cartItems$ = this.cartService.items$;
     this.total$ = this.cartService.total$;
-    // Obtener slug del padre
+
     this.route.parent?.paramMap.subscribe(params => {
       this.slug = params.get('slug') || '';
       if (this.slug) {
@@ -55,37 +79,67 @@ export class CheckoutComponent implements OnInit {
       }
     });
 
-    // Validar dirección según entrega
-    this.checkoutForm.get('deliveryMethod')?.valueChanges.subscribe(val => {
-      const addressControl = this.checkoutForm.get('customerAddress');
-      if (val === 'DELIVERY') {
-        addressControl?.setValidators([Validators.required, Validators.minLength(5)]);
-      } else {
-        addressControl?.clearValidators();
-      }
-      addressControl?.updateValueAndValidity();
+    // 1. Lógica de Regiones y Comunas
+    this.checkoutForm.get('region')?.valueChanges.subscribe(regionName => {
+      this.updateCommunes(regionName);
     });
+
+    // 2. Validaciones dinámicas según Delivery
+    this.checkoutForm.get('deliveryMethod')?.valueChanges.subscribe(method => {
+      const regionCtrl = this.checkoutForm.get('region');
+      const communeCtrl = this.checkoutForm.get('commune');
+      const streetCtrl = this.checkoutForm.get('street');
+      const courierCtrl = this.checkoutForm.get('courier');
+
+      if (method === 'DELIVERY') {
+        regionCtrl?.setValidators(Validators.required);
+        communeCtrl?.setValidators(Validators.required);
+        streetCtrl?.setValidators([Validators.required, Validators.minLength(5)]);
+        courierCtrl?.setValidators(Validators.required);
+      } else {
+        regionCtrl?.clearValidators();
+        communeCtrl?.clearValidators();
+        streetCtrl?.clearValidators();
+        courierCtrl?.clearValidators();
+      }
+
+      regionCtrl?.updateValueAndValidity();
+      communeCtrl?.updateValueAndValidity();
+      streetCtrl?.updateValueAndValidity();
+      courierCtrl?.updateValueAndValidity();
+    });
+  }
+
+  updateCommunes(regionName: string) {
+    const regionData = this.regiones.find(r => r.region === regionName);
+    this.comunasDisponibles = regionData ? regionData.comunas : [];
+    // Resetear la comuna al cambiar región
+    this.checkoutForm.patchValue({ commune: '' });
   }
 
   loadShopConfig() {
     this.storeService.getShopInfo(this.slug).subscribe(config => {
       this.shopConfig = config;
-      // Preseleccionar primer método de pago disponible si existe
-      // (Lógica opcional para mejorar UX)
+
+      // --- CORRECCIÓN: Mover datos anidados a la raíz para que el HTML los vea ---
+      if (config.shippingMethods) {
+        // El backend los envía dentro de shippingMethods, los copiamos afuera
+        this.shopConfig.recommendedCourier = config.shippingMethods['recommendedCourier'];
+        this.shopConfig.dispatchDays = config.shippingMethods['dispatchDays'];
+      }
+      // ---------------------------------------------------------------------------
+
+      if (config.shippingMethods && Array.isArray(config.shippingMethods['companies'])) {
+        this.availableCouriers = config.shippingMethods['companies'];
+      } else {
+        this.availableCouriers = [];
+      }
     });
   }
 
-  increase(productId: string) {
-    this.cartService.updateQuantity(productId, 1);
-  }
-
-  decrease(productId: string) {
-    this.cartService.updateQuantity(productId, -1);
-  }
-
-  remove(productId: string) {
-    this.cartService.removeFromCart(productId);
-  }
+  increase(productId: string) { this.cartService.updateQuantity(productId, 1); }
+  decrease(productId: string) { this.cartService.updateQuantity(productId, -1); }
+  remove(productId: string) { this.cartService.removeFromCart(productId); }
 
   submitOrder() {
     if (this.checkoutForm.invalid) {
@@ -95,30 +149,45 @@ export class CheckoutComponent implements OnInit {
     }
 
     this.loading = true;
+    const currentItems = this.cartService.getCurrentItems();
 
-    // Preparar el objeto para el Backend
-    // (Angular maneja los Observables, necesitamos el valor actual del carrito)
-    const cartItems = this.cartService.getCurrentItems().map(item => ({
+    const cartItemsPayload = currentItems.map(item => ({
       productId: item.product.id,
       quantity: item.quantity
     }));
 
+    const formVal = this.checkoutForm.value;
+
+    // Mapeamos el formulario al DTO del Backend (WebOrderRequest)
     const orderPayload = {
-      ...this.checkoutForm.value,
-      items: cartItems
+      customerName: formVal.customerName,
+      customerPhone: formVal.customerPhone,
+      customerEmail: formVal.customerEmail,
+      customerRut: formVal.customerRut, // <--- NUEVO
+
+      deliveryMethod: formVal.deliveryMethod,
+      courier: formVal.courier,
+      paymentMethod: formVal.paymentMethod,
+      notes: formVal.notes,
+
+      // Dirección desglosada
+      region: formVal.region,
+      commune: formVal.commune,
+      streetAndNumber: formVal.street, // <--- Ojo, en el backend lo llamamos streetAndNumber en el DTO
+
+      items: cartItemsPayload
     };
 
     this.storeService.createOrder(this.slug, orderPayload).subscribe({
       next: (res) => {
         this.loading = false;
-        this.messageService.add({ severity: 'success', summary: '¡Éxito!', detail: 'Pedido #' + res.orderNumber + ' creado.' });
+        this.messageService.add({ severity: 'success', summary: 'Pedido Creado', detail: `Orden #${res.orderNumber}` });
 
-        this.cartService.clearCart(); // Vaciar carrito
+        // Redirigir a WhatsApp
+        this.redirectToWhatsApp(res.orderNumber, formVal, currentItems);
 
-        // Opcional: Redirigir a WhatsApp
-        // this.redirectToWhatsApp(res.orderNumber); 
-
-        this.router.navigate(['/store', this.slug]); // Volver al inicio
+        this.cartService.clearCart();
+        this.router.navigate(['/store', this.slug]);
       },
       error: (err) => {
         this.loading = false;
@@ -126,5 +195,51 @@ export class CheckoutComponent implements OnInit {
         this.messageService.add({ severity: 'error', summary: 'Error', detail: err.error?.error || 'No se pudo crear el pedido' });
       }
     });
+  }
+
+  selectCourier(code: string) {
+    this.checkoutForm.patchValue({ courier: code });
+    this.checkoutForm.get('courier')?.markAsTouched();
+  }
+
+  redirectToWhatsApp(orderNumber: string, formData: any, items: CartItem[]) {
+    const phone = this.shopConfig?.contactPhone || '56900000000';
+    let total = 0;
+    this.total$.pipe(take(1)).subscribe(t => total = t);
+
+    // Construcción del mensaje
+    let text = `🛒 *NUEVO PEDIDO WEB #${orderNumber}*\n`;
+    text += `👤 *Cliente:* ${formData.customerName}\n`;
+    text += `🆔 *RUT:* ${formData.customerRut}\n`;
+    if (formData.customerEmail) text += `📧 ${formData.customerEmail}\n`;
+    text += `📞 ${formData.customerPhone}\n\n`;
+
+    text += `📋 *Detalle:*\n`;
+    items.forEach(item => {
+      const idRef = item.product.sku ? `(SKU: ${item.product.sku})` : '';
+      text += `▪️ ${item.quantity}x ${item.product.name} ${idRef}\n`;
+    });
+
+    text += `\n💰 *Total: $${total.toLocaleString('es-CL')}*\n`;
+    text += `--------------------------------\n`;
+
+    if (formData.deliveryMethod === 'DELIVERY') {
+      const courierName = this.courierNames[formData.courier] || formData.courier;
+      text += `🚚 *Despacho:* ${courierName}\n`;
+      text += `📍 *Dirección:* ${formData.street}, ${formData.commune}, ${formData.region}\n`;
+    } else {
+      text += `🏪 *Entrega:* Retiro en Tienda\n`;
+    }
+
+    const paymentLabel = formData.paymentMethod === 'TRANSFER' ? 'Transferencia' :
+      formData.paymentMethod === 'CASH' ? 'Efectivo' : 'Cobro Carrier';
+    text += `💳 *Pago:* ${paymentLabel}\n`;
+
+    if (formData.notes) {
+      text += `📝 *Nota:* ${formData.notes}\n`;
+    }
+
+    const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
   }
 }

@@ -1,12 +1,11 @@
 import { Component, OnInit, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ProductsService } from '../../../core/services/products.service';
-import { CartService } from '../services/cart.service';
+import { CartService, CartItem } from '../services/cart.service'; // Importar CartItem desde el servicio si está ahí
 import { Product } from '../../../core/models/product.model';
-import { CartItem } from '../../../core/models/cart.model';
 import { Observable } from 'rxjs';
 import { PrimeImportsModule } from '../../../prime-imports';
-import { FormsModule } from '@angular/forms'; // Necesario para ngModel
+import { FormsModule } from '@angular/forms';
 import { MessageService } from 'primeng/api';
 import { InputNumber } from 'primeng/inputnumber';
 import { HttpClient } from '@angular/common/http';
@@ -14,7 +13,7 @@ import { environment } from '../../../../environments/environment';
 import { Category } from '../../../core/models/category.model';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { BarcodeScannerComponent } from '../../../shared/components/barcode-scanner/barcode-scanner';
-
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'app-pos',
@@ -38,7 +37,7 @@ export class PosComponent implements OnInit {
 
   //Categorías
   categories: Category[] = [];
-  selectedCategoryId: string | null | undefined = null; //null significa "todas"
+  selectedCategoryId: string | null | undefined = null;
 
   // --- MODAL CANTIDAD ---
   showQtyDialog: boolean = false;
@@ -61,13 +60,22 @@ export class PosComponent implements OnInit {
   // --- CÓDIGO ---
   showScanner: boolean = false;
 
+  // --- VARIABLES PRECIOS Y PIN ---
+  showPinDialog = false;
+  showPriceEditDialog = false;
+  adminPin = '';
+  itemToEdit: CartItem | null = null;
+  newPriceInput: number = 0;
+  pendingAction: Function | null = null;
+
   constructor(
     private productsService: ProductsService,
     private cartService: CartService,
     private cd: ChangeDetectorRef,
     private messageService: MessageService,
     private http: HttpClient,
-    private categoryService: CategoriesService
+    private categoryService: CategoriesService,
+    private authService: AuthService
   ) {
     this.cartItems$ = this.cartService.items$;
     this.total$ = this.cartService.total$;
@@ -79,26 +87,16 @@ export class PosComponent implements OnInit {
     this.loadCategories();
   }
 
+  // ... (handleScan, loadSettings, toggleMobileView, loadCategories, applyFilters, filterByCategory, loadProducts, onSearch, onEnterSearch IGUALES) ...
+
   handleScan(code: string) {
-    console.log('Producto escaneado:', code);
-
-    // 1. Cerrar la cámara
+    // ... tu código existente ...
     this.showScanner = false;
-
-    // 2. Poner el código en el buscador visualmente
     this.searchTerm = code;
-
-    // 3. Ejecutar la búsqueda
     this.onSearch(code);
-
-    // 4. Intentar seleccionar el producto automáticamente
-    // Usamos un pequeño timeout para asegurar que el filtro (onSearch) terminó
     setTimeout(() => {
-      // Buscamos coincidencia EXACTA por SKU
       const foundProduct = this.visibleProducts.find(p => p.sku.toLowerCase() === code.toLowerCase());
-
       if (foundProduct) {
-        // Si lo encontramos, abrimos el modal de agregar (igual que si le hubieras hecho clic)
         this.selectProduct(foundProduct);
         this.messageService.add({ severity: 'success', summary: 'Encontrado', detail: foundProduct.name, life: 1000 });
       } else {
@@ -110,27 +108,21 @@ export class PosComponent implements OnInit {
   loadSettings() {
     this.http.get(`${environment.apiUrl}/api/settings`).subscribe({
       next: (data: any) => this.shopSettings = data || {},
-      error: () => this.shopSettings = {} // Fallback silencioso
+      error: () => this.shopSettings = {}
     });
   }
 
-  toggleMobileView() {
-    this.mobileView = this.mobileView === 'CATALOG' ? 'CART' : 'CATALOG';
-  }
+  toggleMobileView() { this.mobileView = this.mobileView === 'CATALOG' ? 'CART' : 'CATALOG'; }
 
   loadCategories() {
-    this.categoryService.getCategories().subscribe(
-      data => this.categories = data
-    );
+    this.categoryService.getCategories().subscribe(data => this.categories = data);
   }
 
   applyFilters() {
     let filtered = this.allProducts;
-
     if (this.selectedCategoryId) {
       filtered = filtered.filter(p => p.categoryId === this.selectedCategoryId);
     }
-
     if (this.searchTerm.trim()) {
       const lowerTerm = this.searchTerm.toLowerCase();
       filtered = filtered.filter(p =>
@@ -138,7 +130,6 @@ export class PosComponent implements OnInit {
         p.sku.toLowerCase().includes(lowerTerm)
       );
     }
-
     this.visibleProducts = filtered;
   }
 
@@ -146,7 +137,6 @@ export class PosComponent implements OnInit {
     this.selectedCategoryId = categoryId;
     this.applyFilters();
   }
-
 
   loadProducts() {
     this.productsService.getProducts().subscribe({
@@ -159,7 +149,6 @@ export class PosComponent implements OnInit {
     });
   }
 
-  // --- BÚSQUEDA ---
   onSearch(term: string) {
     this.searchTerm = term;
     this.applyFilters();
@@ -205,6 +194,55 @@ export class PosComponent implements OnInit {
     }
   }
 
+  // --- NUEVO: LÓGICA DE EDICIÓN DE PRECIO ---
+  initiatePriceEdit(item: CartItem) {
+    this.itemToEdit = item;
+
+    // CORRECCIÓN AQUÍ: Usamos 'priceFinal' porque es el modelo Product interno
+    // Si tiene customPrice lo usamos, si no, usamos unitPrice (que ya trae el precio calculado)
+    this.newPriceInput = item.customPrice !== undefined ? item.customPrice : item.unitPrice;
+
+    // Obtener rol del usuario
+    const currentUser = this.authService.getCurrentUser();
+    const role = currentUser ? currentUser.role : 'CASHIER';
+
+    // Si es CAJERO, pedir PIN. Si es ADMIN, pasar directo.
+    if (role === 'CASHIER') {
+      this.pendingAction = () => {
+        this.showPriceEditDialog = true;
+      };
+      this.adminPin = '';
+      this.showPinDialog = true;
+    } else {
+      this.showPriceEditDialog = true;
+    }
+  }
+
+  verifyPinAndExecute() {
+    if (!this.adminPin) return;
+
+    this.http.post(`${environment.apiUrl}/api/settings/verify-pin`, { pin: this.adminPin })
+      .subscribe({
+        next: () => {
+          this.showPinDialog = false;
+          this.messageService.add({ severity: 'success', summary: 'Autorizado' });
+          if (this.pendingAction) this.pendingAction();
+        },
+        error: () => {
+          this.messageService.add({ severity: 'error', summary: 'Acceso Denegado', detail: 'PIN Incorrecto' });
+          this.adminPin = '';
+        }
+      });
+  }
+
+  confirmPriceChange() {
+    if (this.itemToEdit && this.newPriceInput >= 0) {
+      this.cartService.updateItemPrice(this.itemToEdit.product.id, this.newPriceInput);
+      this.showPriceEditDialog = false;
+      this.messageService.add({ severity: 'info', summary: 'Precio Actualizado' });
+    }
+  }
+
   // --- ACCIONES DEL CARRITO ---
   increaseItem(item: CartItem) {
     const success = this.cartService.addToCart(item.product, 1);
@@ -247,7 +285,6 @@ export class PosComponent implements OnInit {
   }
 
   finalizeSale() {
-    // 1. Validación de efectivo
     if (this.paymentMethod === 'CASH' && (this.amountReceived ?? 0) < this.currentTotal) {
       this.showError('Pago Insuficiente', 'El monto recibido es menor al total.');
       return;
@@ -255,28 +292,23 @@ export class PosComponent implements OnInit {
 
     this.loading = true;
 
-    // 2. Llamada al Backend
     this.cartService.processSale(this.paymentMethod).subscribe({
       next: (res) => {
         this.loading = false;
         this.showPaymentDialog = false;
 
-        // 3. Guardar datos para impresión (Importante para el ticket)
         this.lastSaleTicket = {
           saleNumber: res.saleNumber,
           createdAt: new Date(),
-          items: this.cartService.getCurrentItems(), // Guardamos copia de items antes de limpiar
+          items: this.cartService.getCurrentItems(),
           total: this.currentTotal,
           change: this.changeAmount,
-          amountReceived: this.amountReceived, // Guardamos cuánto pagó
+          amountReceived: this.amountReceived,
           paymentMethod: this.paymentMethod
         };
 
-        // 4. Mandar a imprimir
         setTimeout(() => {
           this.printTicketHardcore();
-
-          // 5. Limpieza final
           this.cartService.clearCart();
           this.loadProducts();
           this.messageService.add({ severity: 'success', summary: 'Venta Exitosa', detail: `Ticket #${res.saleNumber}` });
@@ -291,16 +323,15 @@ export class PosComponent implements OnInit {
     });
   }
 
-  // --- IMPRESIÓN DE TICKET (CORREGIDO CON EFECTIVO/VUELTO) ---
+  // --- IMPRESIÓN (Sin cambios) ---
   private printTicketHardcore() {
-    // Datos de configuración
+    // ... (Tu código de impresión igual) ...
     const shopName = this.shopSettings.shopName || 'MI NEGOCIO';
     const shopRut = this.shopSettings.shopRut || '';
     const shopAddress = this.shopSettings.shopAddress || '';
     const footerMsg = this.shopSettings.footerMessage || 'Gracias por su compra';
     const printerType = this.shopSettings.printerType || '58mm';
 
-    // Estilos dinámicos
     let cssWidth = '58mm';
     let fontSize = '12px';
     let margin = '0';
@@ -308,11 +339,9 @@ export class PosComponent implements OnInit {
     if (printerType === '80mm') { cssWidth = '80mm'; fontSize = '14px'; }
     if (printerType === 'LETTER') { cssWidth = '100%'; fontSize = '12pt'; margin = '20mm'; }
 
-    // Formateadores
     const fmtMoney = (amount: number) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(amount);
     const dateStr = new Date().toLocaleString('es-CL');
 
-    // Construir filas de productos
     let itemsHtml = '';
     this.lastSaleTicket.items.forEach((item: any) => {
       itemsHtml += `
@@ -323,7 +352,6 @@ export class PosComponent implements OnInit {
         `;
     });
 
-    // Construir sección de pago (AQUÍ ESTABA LO QUE FALTABA)
     let paymentHtml = '';
     if (this.lastSaleTicket.paymentMethod === 'CASH') {
       paymentHtml = `
@@ -344,7 +372,6 @@ export class PosComponent implements OnInit {
         `;
     }
 
-    // Abrir ventana popup
     const popupWin = window.open('', '_blank', 'top=0,left=0,height=600,width=400');
 
     if (popupWin) {
@@ -398,13 +425,14 @@ export class PosComponent implements OnInit {
         </html>
       `);
       popupWin.document.close();
-    } else {
-      alert('Permite ventanas emergentes para imprimir.');
     }
   }
 
-  // Helpers
   getPrice(p: Product): number {
+    // CORRECCIÓN: Usamos priceFinal que ya viene calculado desde el backend en ProductDto
+    if (p.priceFinal) return p.priceFinal;
+
+    // Fallback
     if (p.isTaxIncluded) {
       return p.priceNeto * (1 + (p.taxPercent || 19) / 100);
     } else {

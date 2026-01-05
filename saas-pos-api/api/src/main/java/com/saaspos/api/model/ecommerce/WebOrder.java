@@ -33,6 +33,18 @@ public class WebOrder {
     @Column(name = "customer_phone", nullable = false)
     private String customerPhone;
 
+    @Column(name = "customer_rut")
+    private String customerRut;
+
+    @Column(name = "shipping_region")
+    private String shippingRegion;
+
+    @Column(name = "shipping_commune")
+    private String shippingCommune;
+
+    @Column(name = "shipping_street")
+    private String shippingStreet;
+
     @Column(name = "customer_email")
     private String customerEmail;
 
@@ -75,6 +87,9 @@ public class WebOrder {
 
     @Column(name = "shipping_method")
     private String shippingMethod;
+
+    @Column(name = "courier")
+    private String courier; // Ej: "starken", "chilexpress"
 
     // --- Relaciones ---
     @OneToOne

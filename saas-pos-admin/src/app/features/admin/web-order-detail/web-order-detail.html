@@ -1,0 +1,272 @@
+<p-toast position="top-center"></p-toast>
+
+<div class="p-6 max-w-5xl mx-auto" *ngIf="order; else loadingTpl">
+
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div>
+            <div class="flex items-center gap-3">
+                <button pButton icon="pi pi-arrow-left" [routerLink]="['/admin/dashboard']"
+                    class="p-button-text p-button-rounded text-textmain"></button>
+                <h1 class="text-3xl font-bold text-textmain">Pedido #{{ order.orderNumber }}</h1>
+                <p-tag [value]="order.status" [severity]="getSeverity(order.status)"
+                    styleClass="text-base px-3 py-1"></p-tag>
+            </div>
+            <p class="text-textsec ml-12">{{ order.createdAt | date:'medium' }}</p>
+        </div>
+
+        <div
+            class="flex items-center gap-3 bg-cardbg p-2 rounded shadow-sm border border-gray-200 dark:border-gray-700">
+            <span class="text-sm font-semibold text-textmain pl-2">Cambiar Estado:</span>
+
+            <p-autocomplete [(ngModel)]="selectedStatusObj" [suggestions]="filteredStatuses"
+                (completeMethod)="filterStatus($event)" [dropdown]="true" field="label"
+                (onSelect)="onStatusSelect($event)" [forceSelection]="true" placeholder="Seleccionar estado"
+                [style]="{'width':'220px'}" inputStyleClass="w-full bg-darkbg text-textmain border-gray-700">
+            </p-autocomplete>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+        <div class="md:col-span-1 space-y-6">
+
+            <p-card header="Datos del Cliente" styleClass="shadow-sm bg-cardbg text-textmain">
+                <div class="flex flex-col gap-4">
+
+                    <div>
+                        <label class="text-xs text-textsec uppercase font-bold">Nombre</label>
+                        <p class="text-lg font-medium text-textmain">{{ order.customerName }}</p>
+                    </div>
+
+                    <div *ngIf="order.customerRut">
+                        <label class="text-xs text-textsec uppercase font-bold">RUT</label>
+                        <p
+                            class="text-base font-mono bg-darkbg px-2 py-1 rounded inline-block text-textmain border border-gray-700">
+                            {{ order.customerRut }}
+                        </p>
+                    </div>
+
+                    <div>
+                        <label class="text-xs text-textsec uppercase font-bold">Contacto</label>
+
+                        <div class="flex items-center gap-2 mt-1">
+                            <i class="pi pi-phone text-textsec"></i>
+                            <span class="text-base text-textmain">{{ order.customerPhone }}</span>
+                            <a [href]="'https://wa.me/' + order.customerPhone.replace('+','') " target="_blank"
+                                class="text-green-500 hover:text-green-400" pTooltip="Abrir WhatsApp">
+                                <i class="pi pi-whatsapp text-lg"></i>
+                            </a>
+                        </div>
+
+                        <div class="flex items-center gap-2 mt-2" *ngIf="order.customerEmail">
+                            <i class="pi pi-envelope text-textsec"></i>
+                            <a [href]="'mailto:' + order.customerEmail"
+                                class="text-primary hover:underline text-sm truncate">
+                                {{ order.customerEmail }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </p-card>
+
+            <p-card header="Envío y Entrega" styleClass="shadow-sm bg-cardbg text-textmain">
+                <div class="flex flex-col gap-4">
+
+                    <div class="flex justify-between items-start border-b border-gray-200 dark:border-gray-700 pb-3">
+                        <div>
+                            <label class="text-xs text-textsec uppercase font-bold">Método</label>
+                            <p class="text-lg font-bold text-primary">
+                                {{ order.shippingMethod === 'DELIVERY' ? 'Despacho a Domicilio' : 'Retiro en Tienda' }}
+                            </p>
+                        </div>
+                        <i class="pi text-2xl text-textsec"
+                            [ngClass]="order.shippingMethod === 'DELIVERY' ? 'pi-truck' : 'pi-building'"></i>
+                    </div>
+
+                    <div *ngIf="order.shippingMethod === 'DELIVERY'" class="space-y-3">
+
+                        <div>
+                            <label class="text-xs text-textsec uppercase font-bold">Courier</label>
+                            <div class="flex items-center gap-2">
+                                <span
+                                    class="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 text-xs font-bold px-2 py-1 rounded uppercase">
+                                    {{ order.courier || 'No asignado' }}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="bg-darkbg p-3 rounded-lg border border-gray-700">
+                            <label class="text-xs text-textsec uppercase font-bold mb-1 block">Dirección de
+                                Entrega</label>
+
+                            <p class="text-base font-bold text-textmain">
+                                {{ order.shippingStreet }}
+                            </p>
+
+                            <div class="flex gap-2 text-sm text-textsec mt-1">
+                                <span>{{ order.shippingCommune }}</span>
+                                <span>•</span>
+                                <span>{{ order.shippingRegion }}</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div *ngIf="order.shippingMethod === 'PICKUP'"
+                        class="text-sm text-textsec italic bg-darkbg p-3 rounded border border-gray-700">
+                        El cliente retirará el pedido en el local.
+                    </div>
+
+                </div>
+            </p-card>
+        </div>
+
+        <div class="md:col-span-2">
+            <p-card header="Detalle de Productos" styleClass="shadow-sm h-full bg-cardbg text-textmain">
+
+                <div class="flex justify-between items-center mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+                    <button pButton (click)="toggleEditMode()"
+                        [label]="isEditingItems ? 'Cancelar' : 'Modificar Productos'"
+                        [icon]="isEditingItems ? 'pi pi-times' : 'pi pi-pencil'"
+                        class="p-button-sm p-button-outlined p-button-secondary">
+                    </button>
+
+                    <button *ngIf="isEditingItems" pButton (click)="initiateSave()" label="Guardar Cambios"
+                        icon="pi pi-check" class="p-button-sm p-button-success">
+                    </button>
+                </div>
+
+                <div *ngIf="isEditingItems" class="mb-4 animate-fade-in">
+                    <span class="p-fluid">
+                        <p-autoComplete [(ngModel)]="productSearchQuery" [suggestions]="productSuggestions"
+                            (completeMethod)="searchProduct($event)" field="name" [minLength]="1" [delay]="0"
+                            (onSelect)="addProductToOrder($event)" placeholder="Buscar producto para agregar..."
+                            [forceSelection]="true" inputStyleClass="w-full bg-darkbg text-textmain border-gray-700">
+
+                            <ng-template let-product pTemplate="item">
+                                <div class="flex justify-between gap-4 w-full"
+                                    [class.opacity-50]="product.stockCurrent < 1">
+                                    <div class="flex flex-col">
+                                        <span class="font-bold">{{product.name}}</span>
+                                        <span class="text-xs text-textsec">SKU: {{product.sku}}</span>
+                                    </div>
+
+                                    <div class="flex flex-col items-end">
+                                        <span class="font-bold text-primary">
+                                            {{product.priceFinal | currency:'CLP':'symbol-narrow':'1.0-0'}}
+                                        </span>
+                                        <span class="text-xs font-bold"
+                                            [ngClass]="{'text-red-500': product.stockCurrent < 1, 'text-green-600': product.stockCurrent > 0}">
+                                            Stock: {{product.stockCurrent}}
+                                        </span>
+                                    </div>
+                                </div>
+                            </ng-template>
+                        </p-autoComplete>
+                    </span>
+                </div>
+
+                <p-table [value]="isEditingItems ? tempItems : order.items" [tableStyle]="{'min-width': '100%'}"
+                    styleClass="p-datatable-sm">
+                    <ng-template pTemplate="header">
+                        <tr>
+                            <th class="bg-gray-100 dark:bg-slate-800 text-textsec">Producto</th>
+                            <th class="bg-gray-100 dark:bg-slate-800 text-textsec text-center">Cant.</th>
+                            <th class="bg-gray-100 dark:bg-slate-800 text-textsec text-right">Precio</th>
+                            <th class="bg-gray-100 dark:bg-slate-800 text-textsec text-right">Subtotal</th>
+                            <th *ngIf="isEditingItems" class="bg-gray-100 dark:bg-slate-800 w-10"></th>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
+                        <tr class="border-b border-gray-200 dark:border-gray-700">
+                            <td class="text-textmain">
+                                <span class="font-bold block">{{ item.productNameSnapshot }}</span>
+                                <span *ngIf="item.skuSnapshot" class="text-xs text-textsec block">SKU: {{
+                                    item.skuSnapshot }}</span>
+                            </td>
+
+                            <td class="text-center text-textmain">
+                                <span *ngIf="!isEditingItems" class="font-bold">{{ item.quantity }}</span>
+
+                                <div *ngIf="isEditingItems" class="flex items-center justify-center gap-1">
+                                    <button (click)="updateQuantity(rowIndex, -1)"
+                                        class="w-6 h-6 flex items-center justify-center bg-gray-200 dark:bg-slate-700 text-textmain rounded hover:bg-gray-300 transition">-</button>
+                                    <span class="w-8 text-center font-bold">{{ item.quantity }}</span>
+                                    <button (click)="updateQuantity(rowIndex, 1)"
+                                        class="w-6 h-6 flex items-center justify-center bg-gray-200 dark:bg-slate-700 text-textmain rounded hover:bg-gray-300 transition">+</button>
+                                </div>
+                            </td>
+
+                            <td class="text-right text-textmain">
+                                <div *ngIf="isEditingItems">
+                                    <p-inputNumber [(ngModel)]="item.customPrice" mode="currency" currency="CLP"
+                                        locale="es-CL" (onInput)="recalculateSubtotal(item)"
+                                        inputStyleClass="w-24 text-right p-1 text-sm font-bold bg-darkbg border border-gray-600 rounded text-textmain focus:border-primary">
+                                    </p-inputNumber>
+                                </div>
+                                <div *ngIf="!isEditingItems">
+                                    {{ item.unitPriceAtMoment | currency:'CLP':'symbol-narrow':'1.0-0' }}
+                                </div>
+                            </td>
+
+                            <td class="text-right font-bold text-textmain">
+                                {{ item.subtotal | currency:'CLP':'symbol-narrow':'1.0-0' }}
+                            </td>
+
+                            <td *ngIf="isEditingItems" class="text-center">
+                                <button pButton icon="pi pi-trash" class="p-button-danger p-button-text p-button-sm"
+                                    (click)="removeItem(rowIndex)"></button>
+                            </td>
+                        </tr>
+                    </ng-template>
+
+                    <ng-template pTemplate="footer">
+                        <tr>
+                            <td colspan="3"
+                                class="text-right font-bold text-xl pr-4 text-textmain bg-transparent border-none">TOTAL
+                            </td>
+                            <td class="text-right font-bold text-xl text-primary bg-transparent border-none">
+                                {{ (isEditingItems ? calculateTempTotal() : order.finalTotal) |
+                                currency:'CLP':'symbol-narrow':'1.0-0' }}
+                            </td>
+                            <td *ngIf="isEditingItems" class="bg-transparent border-none"></td>
+                        </tr>
+                    </ng-template>
+                </p-table>
+
+                <div
+                    class="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-100 dark:border-blue-800 flex justify-between items-center">
+                    <span class="text-blue-800 dark:text-blue-300 font-medium">Método de Pago:</span>
+                    <span class="font-bold text-gray-900 dark:text-white">{{ order.paymentMethod }}</span>
+                </div>
+
+            </p-card>
+        </div>
+
+    </div>
+</div>
+
+<ng-template #loadingTpl>
+    <div class="flex flex-col items-center justify-center h-96">
+        <i class="pi pi-spin pi-spinner text-4xl text-primary mb-4"></i>
+        <p class="text-textsec">Cargando información del pedido...</p>
+    </div>
+</ng-template>
+
+<p-dialog header="Autorización Requerida" [(visible)]="showPinDialog" [modal]="true" [style]="{width: '300px'}"
+    [closable]="true" styleClass="bg-cardbg text-textmain">
+    <div class="flex flex-col gap-3 text-center pt-2">
+        <i class="pi pi-lock text-4xl text-primary mb-2"></i>
+        <p class="text-sm text-textsec">Se requiere PIN de Administrador para modificar este pedido.</p>
+
+        <p-password [(ngModel)]="adminPin" [feedback]="false" [toggleMask]="true" styleClass="w-full"
+            inputStyleClass="w-full text-center text-xl font-bold tracking-widest bg-darkbg text-textmain border-gray-700"
+            placeholder="PIN" (keydown.enter)="verifyPinAndExecute()"></p-password>
+
+        <div class="flex justify-center gap-2 mt-4">
+            <button pButton label="Cancelar" (click)="showPinDialog = false"
+                class="p-button-text p-button-secondary"></button>
+            <button pButton label="Autorizar" (click)="verifyPinAndExecute()" class="p-button-primary"></button>
+        </div>
+    </div>
+</p-dialog>

@@ -1,16 +1,17 @@
 package com.saaspos.api.service;
 
 import com.saaspos.api.dto.SaleRequest;
-import com.saaspos.api.model.Product;
-import com.saaspos.api.model.Sale;
-import com.saaspos.api.model.SaleItem;
+import com.saaspos.api.model.*;
+import com.saaspos.api.repository.InventoryLogRepository;
 import com.saaspos.api.repository.ProductRepository;
 import com.saaspos.api.repository.SaleRepository;
+import com.saaspos.api.repository.UserRepository;
 import jakarta.transaction.Transactional;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode; // Importante para división de moneda
+import java.math.RoundingMode;
 import java.util.UUID;
 
 @Service
@@ -18,92 +19,161 @@ public class SaleService {
 
     private final SaleRepository saleRepository;
     private final ProductRepository productRepository;
+    private final InventoryLogRepository inventoryLogRepository;
+    private final UserRepository userRepository;
 
-    public SaleService(SaleRepository saleRepository, ProductRepository productRepository) {
+    public SaleService(SaleRepository saleRepository,
+                       ProductRepository productRepository,
+                       InventoryLogRepository inventoryLogRepository,
+                       UserRepository userRepository) {
         this.saleRepository = saleRepository;
         this.productRepository = productRepository;
+        this.inventoryLogRepository = inventoryLogRepository;
+        this.userRepository = userRepository;
     }
 
     @Transactional
     public Sale processSale(SaleRequest request, UUID tenantId) {
         Sale sale = new Sale();
+        // 1. GENERAR ID MANUALMENTE PARA LOS LOGS
+        // Esto es clave para que los logs sepan a qué venta pertenecen antes de guardarla
+        sale.setId(UUID.randomUUID());
         sale.setTenantId(tenantId);
 
-        // 1. Obtener el Total Bruto (Con IVA)
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+        User currentUser = userRepository.findByEmail(email).orElseThrow();
+
+        // Totales y Cabecera
         BigDecimal total = request.getTotalAmount();
         sale.setTotalAmount(total);
 
-        // 2. CÁLCULO DE IMPUESTOS (ESTO FALTABA)
-        // Asumiendo IVA 19% (Factor 1.19).
-        // Fórmula: Neto = Total / 1.19
-        // RoundingMode.HALF_UP es el redondeo estándar matemático.
+        // Cálculos aproximados de cabecera
         BigDecimal subtotal = total.divide(new BigDecimal("1.19"), 0, RoundingMode.HALF_UP);
         BigDecimal tax = total.subtract(subtotal);
-
-        // 3. Llenar los campos obligatorios de la BD
-        sale.setSubtotalAmount(subtotal); // <--- ESTO ARREGLA EL ERROR "null value"
+        sale.setSubtotalAmount(subtotal);
         sale.setTotalTax(tax);
 
-        // 4. Datos administrativos
         sale.setSaleNumber("TCK-" + System.currentTimeMillis());
         sale.setStatus("COMPLETED");
 
-        // 5. Procesar Ítems y Descontar Stock
         for (SaleRequest.SaleItemRequest itemDto : request.getItems()) {
             Product product = productRepository.findById(itemDto.getProductId())
-                    .orElseThrow(() -> new RuntimeException("Producto ID " + itemDto.getProductId() + " no existe"));
+                    .orElseThrow(() -> new RuntimeException("Producto no existe"));
 
-            // Validar Tenant (Seguridad)
             if (!product.getTenantId().equals(tenantId)) {
-                throw new RuntimeException("Error de seguridad: Producto de otro tenant");
+                throw new RuntimeException("Error de seguridad");
             }
 
-            // Obtener valores BigDecimal seguros
-            BigDecimal currentStock = product.getStockCurrent() != null ? product.getStockCurrent() : BigDecimal.ZERO;
             BigDecimal qtyToSell = itemDto.getQuantity() != null ? itemDto.getQuantity() : BigDecimal.ZERO;
 
-            // Validar Stock
-            if (currentStock.compareTo(qtyToSell) < 0) {
-                throw new RuntimeException("Stock insuficiente para: " + product.getName() + ". Disponible: " + currentStock);
+            // --- LÓGICA DE STOCK (Packs vs Normal) ---
+            if ("BUNDLE".equals(product.getProductType())) {
+                BigDecimal packStock = product.getStockCurrent();
+
+                // Caso 1: Pack Limitado
+                if (packStock != null) {
+                    if (packStock.compareTo(qtyToSell) < 0) throw new RuntimeException("Pack Agotado");
+                    product.setStockCurrent(packStock.subtract(qtyToSell));
+                    productRepository.save(product);
+                }
+
+                // Caso 2: Pack Ilimitado (NULL) -> Solo descontamos hijos
+                for (BundleItem bundleItem : product.getBundleItems()) {
+                    Product child = bundleItem.getComponentProduct();
+                    BigDecimal totalChildQty = bundleItem.getQuantity().multiply(qtyToSell);
+
+                    if (child.getStockCurrent().compareTo(totalChildQty) < 0) throw new RuntimeException("Sin stock componente: " + child.getName());
+
+                    BigDecimal oldStock = child.getStockCurrent();
+                    child.setStockCurrent(oldStock.subtract(totalChildQty));
+                    productRepository.save(child);
+
+                    // Log del componente hijo
+                    createLog(child, currentUser, "BUNDLE_SALE", totalChildQty.negate(), oldStock, child.getStockCurrent(),
+                            "Venta Pack POS: " + product.getName(), sale.getId());
+                }
+            } else {
+                // Caso 3: Producto Normal
+                BigDecimal currentStock = product.getStockCurrent();
+                if (currentStock.compareTo(qtyToSell) < 0) throw new RuntimeException("Sin stock: " + product.getName());
+
+                BigDecimal oldStock = currentStock; // Guardamos stock antes de restar
+                product.setStockCurrent(currentStock.subtract(qtyToSell));
+                productRepository.save(product);
+
+                // IMPORTANTE: Log de venta normal para que aparezca la etiqueta POS
+                createLog(product, currentUser, "SALE", qtyToSell.negate(), oldStock, product.getStockCurrent(),
+                        "Venta POS", sale.getId());
             }
 
-            // Descontar Stock
-            product.setStockCurrent(currentStock.subtract(qtyToSell));
-            productRepository.save(product);
-
-            // Guardar Detalle (SaleItem)
+            // --- LÓGICA DE PRECIOS FLEXIBLES ---
             SaleItem saleItem = new SaleItem();
             saleItem.setProduct(product);
             saleItem.setQuantity(qtyToSell);
-            // 1. Guardar Costo Histórico (Snapshot)
+
+            BigDecimal finalUnitPrice;
+            boolean priceChanged = false;
+
+            if (itemDto.getCustomPrice() != null && itemDto.getCustomPrice().compareTo(BigDecimal.ZERO) >= 0) {
+                finalUnitPrice = itemDto.getCustomPrice();
+                priceChanged = true;
+            } else {
+                finalUnitPrice = product.getPriceFinal();
+            }
+
+            // Guardar Costos e Impuestos
             BigDecimal costAtMoment = product.getCostPrice() != null ? product.getCostPrice() : BigDecimal.ZERO;
             saleItem.setCostPriceAtSale(costAtMoment);
 
-            // 2. Guardar Precio Neto Histórico (Base imponible)
-            BigDecimal netPrice = product.getPriceNeto();
-            saleItem.setNetPriceAtSale(netPrice); // <--- NUEVO CAMPO EN ENTIDAD SaleItem
-
-            // 3. Guardar Impuesto (Para tema legal)
+            // Cálculo inverso de impuestos (asumiendo precio BRUTO)
             BigDecimal taxPercent = product.getTaxPercent() != null ? product.getTaxPercent() : new BigDecimal("19.0");
             BigDecimal taxFactor = taxPercent.divide(new BigDecimal("100"), 4, RoundingMode.HALF_UP);
+            BigDecimal divisor = BigDecimal.ONE.add(taxFactor);
 
-            // Impuesto unitario: 100 * 0.19 = 19
-            BigDecimal unitTaxCalc = netPrice.multiply(taxFactor);
+            BigDecimal netPrice;
+            BigDecimal unitTaxCalc;
+
+            if (product.getIsTaxIncluded()) {
+                netPrice = finalUnitPrice.divide(divisor, 4, RoundingMode.HALF_UP);
+                unitTaxCalc = finalUnitPrice.subtract(netPrice);
+            } else {
+                netPrice = finalUnitPrice.divide(divisor, 4, RoundingMode.HALF_UP); // Ajuste estándar POS
+                unitTaxCalc = finalUnitPrice.subtract(netPrice);
+            }
+
+            saleItem.setNetPriceAtSale(netPrice);
             saleItem.setUnitTax(unitTaxCalc);
-
-            // Impuesto total línea (opcional, si agregaste la columna tax_amount_at_sale)
             saleItem.setTaxAmountAtSale(unitTaxCalc.multiply(qtyToSell));
-
-            // 4. Precio Unitario Final (Gross/Bruto) para el ticket
-            // Neto (100) + Impuesto (19) = 119
-            BigDecimal grossUnitPrice = netPrice.add(unitTaxCalc);
-
-            // Redondeamos a 0 decimales para CLP (pesos chilenos)
-            saleItem.setUnitPrice(grossUnitPrice.setScale(0, RoundingMode.HALF_UP));
+            saleItem.setUnitPrice(finalUnitPrice);
+            saleItem.setTotal(finalUnitPrice.multiply(qtyToSell));
 
             sale.addItem(saleItem);
+
+            // Log de Cambio de Precio
+            if (priceChanged) {
+                String logMsg = String.format("Precio modificado en caja: $%s -> $%s", product.getPriceFinal(), finalUnitPrice);
+                createLog(product, currentUser, "PRICE_OVERRIDE", BigDecimal.ZERO, product.getStockCurrent(), product.getStockCurrent(),
+                        logMsg, sale.getId());
+            }
         }
 
         return saleRepository.save(sale);
+    }
+
+    // --- MÉTODO CORREGIDO: Acepta UUID saleId ---
+    private void createLog(Product p, User u, String action, BigDecimal change, BigDecimal oldStk, BigDecimal newStk, String reason, UUID saleId) {
+        InventoryLog log = new InventoryLog();
+        log.setTenantId(p.getTenantId());
+        log.setProductId(p.getId());
+        log.setProductNameSnapshot(p.getName());
+        log.setUserId(u.getId());
+        log.setUserNameSnapshot(u.getFullName());
+        log.setActionType(action);
+        log.setQuantityChange(change);
+        log.setOldStock(oldStk);
+        log.setNewStock(newStk);
+        log.setReason(reason);
+        log.setSaleId(saleId); // Ahora sí compila porque recibe el parámetro
+        inventoryLogRepository.save(log);
     }
 }

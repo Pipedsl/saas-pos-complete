@@ -1,0 +1,1 @@
+ALTER TABLE shop_configs ADD COLUMN contact_phone VARCHAR(255);

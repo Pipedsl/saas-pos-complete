@@ -1,96 +1,366 @@
 <p-toast position="top-center"></p-toast>
-<div class="p-4 lg:p-6 max-w-4xl mx-auto h-full overflow-y-auto">
-    <h2 class="text-2xl font-bold text-textmain mb-6">Configuración de Tienda</h2>
 
-    <div class="flex flex-col gap-6">
+<div class="p-4 lg:p-6 max-w-5xl mx-auto h-full overflow-y-auto">
+    <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-bold text-textmain">Configuraciones</h2>
+    </div>
 
-        <p-card header="Información del Negocio" styleClass="bg-cardbg border-none shadow-lg text-textmain">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="flex flex-col gap-2">
-                    <label class="text-textsec text-sm">Nombre de Fantasía</label>
-                    <input pInputText [(ngModel)]="settings.shopName" placeholder="Ej: Minimarket Don Pepe"
-                        class="dark:bg-gray-900 border-gray-700 text-textmain w-full" />
-                </div>
-                <div class="flex flex-col gap-2">
-                    <label class="text-textsec text-sm">RUT Empresa</label>
-                    <input pInputText [(ngModel)]="settings.shopRut" placeholder="76.xxx.xxx-x"
-                        class="dark:bg-gray-900 border-gray-700 text-textmain w-full" />
-                </div>
-                <div class="flex flex-col gap-2 col-span-full">
-                    <label class="text-textsec text-sm">Dirección / Sucursal</label>
-                    <input pInputText [(ngModel)]="settings.shopAddress" placeholder="Av. Siempre Viva 123"
-                        class="dark:bg-gray-900 border-gray-700 text-textmain w-full" />
-                </div>
-            </div>
-        </p-card>
+    <p-tabs value="0">
 
-        <p-card header="Configuración de Impresión" styleClass="bg-cardbg border-none shadow-lg text-textmain">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <p-tablist>
+            <p-tab value="0">Sistema POS</p-tab>
+            <p-tab value="1">Tienda Online</p-tab>
+        </p-tablist>
 
-                <div class="flex flex-col gap-2">
-                    <label class="text-textsec text-sm">Tamaño de Papel</label>
-                    <div class="flex gap-4">
-                        <div class="flex align-items-center">
-                            <input type="radio" name="paper" value="58mm" [(ngModel)]="settings.printerType"
-                                class="accent-primary w-4 h-4">
-                            <label class="ml-2 text-textsec">Térmica 58mm</label>
+        <p-tabpanels>
+
+            <p-tabpanel value="0">
+                <div class="flex flex-col gap-6 mt-4">
+
+                    <p-card header="Seguridad POS" styleClass="bg-cardbg border-none shadow-lg text-textmain">
+                        <div class="flex flex-col gap-2">
+                            <label class="text-textsec text-sm font-bold flex items-center gap-2">
+                                <i class="pi pi-lock text-red-400"></i> PIN Maestro de Administrador
+                            </label>
+                            <p class="text-xs text-textsec mb-2 opacity-80">
+                                Este código será solicitado a los cajeros para autorizar cambios de precio o descuentos
+                                especiales.
+                            </p>
+
+                            <p-password [(ngModel)]="settings.admin_pin" [toggleMask]="true" [feedback]="false"
+                                styleClass="w-full max-w-md"
+                                inputStyleClass="w-full !bg-darkbg !border-gray-700 !text-textmain h-10 tracking-widest text-center font-bold"
+                                placeholder="****">
+                            </p-password>
                         </div>
-                        <div class="flex align-items-center">
-                            <input type="radio" name="paper" value="80mm" [(ngModel)]="settings.printerType"
-                                class="accent-primary w-4 h-4">
-                            <label class="ml-2 text-textsec">Térmica 80mm</label>
+                    </p-card>
+
+                    <p-card header="Información del Negocio" styleClass="bg-cardbg border-none shadow-lg text-textmain">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="flex flex-col gap-2">
+                                <label class="text-textsec text-sm">Nombre de Fantasía</label>
+                                <input pInputText [(ngModel)]="settings.shopName" placeholder="Ej: Minimarket Don Pepe"
+                                    class="w-full !bg-darkbg !border-gray-700 !text-textmain" />
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <label class="text-textsec text-sm">RUT Empresa</label>
+                                <input pInputText [(ngModel)]="settings.shopRut" placeholder="76.xxx.xxx-x"
+                                    class="w-full !bg-darkbg !border-gray-700 !text-textmain" />
+                            </div>
+                            <div class="flex flex-col gap-2 col-span-full">
+                                <label class="text-textsec text-sm">Dirección / Sucursal</label>
+                                <input pInputText [(ngModel)]="settings.shopAddress" placeholder="Av. Siempre Viva 123"
+                                    class="w-full !bg-darkbg !border-gray-700 !text-textmain" />
+                            </div>
                         </div>
-                        <div class="flex align-items-center">
-                            <input type="radio" name="paper" value="LETTER" [(ngModel)]="settings.printerType"
-                                class="accent-primary w-4 h-4">
-                            <label class="ml-2 text-textsec">Carta / A4</label>
+                    </p-card>
+
+                    <p-card header="Configuración de Impresión"
+                        styleClass="bg-cardbg border-none shadow-lg text-textmain">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="flex flex-col gap-2">
+                                <label class="text-textsec text-sm">Tamaño de Papel</label>
+                                <div class="flex gap-4 pt-2">
+                                    <div class="flex align-items-center">
+                                        <input type="radio" name="paper" value="58mm" [(ngModel)]="settings.printerType"
+                                            class="accent-primary w-4 h-4">
+                                        <label class="ml-2 text-textsec">58mm</label>
+                                    </div>
+                                    <div class="flex align-items-center">
+                                        <input type="radio" name="paper" value="80mm" [(ngModel)]="settings.printerType"
+                                            class="accent-primary w-4 h-4">
+                                        <label class="ml-2 text-textsec">80mm</label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col gap-2">
+                                <label class="text-textsec text-sm">Prefijo de Ticket</label>
+                                <input pInputText [(ngModel)]="settings.ticketPrefix" placeholder="Ej: TCK-"
+                                    class="w-full !bg-darkbg !border-gray-700 !text-textmain" />
+                            </div>
+
+                            <div class="flex flex-col gap-2 col-span-full">
+                                <label class="text-textsec text-sm">Mensaje Pie de Página</label>
+                                <input pInputText [(ngModel)]="settings.footerMessage"
+                                    placeholder="Ej: ¡Gracias por su preferencia!"
+                                    class="w-full !bg-darkbg !border-gray-700 !text-textmain" />
+                            </div>
                         </div>
+                    </p-card>
+
+                    <p-card header="Datos Bancarios" styleClass="bg-cardbg border-none shadow-lg text-textmain">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="flex flex-col gap-2">
+                                <label class="text-textsec text-sm">Banco</label>
+                                <input pInputText [(ngModel)]="settings.bankName"
+                                    class="w-full !bg-darkbg !border-gray-700 !text-textmain" />
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <label class="text-textsec text-sm">Tipo de Cuenta</label>
+                                <input pInputText [(ngModel)]="settings.accountType"
+                                    class="w-full !bg-darkbg !border-gray-700 !text-textmain" />
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <label class="text-textsec text-sm">Número</label>
+                                <input pInputText [(ngModel)]="settings.accountNumber"
+                                    class="w-full !bg-darkbg !border-gray-700 !text-textmain" />
+                            </div>
+                            <div class="flex flex-col gap-2">
+                                <label class="text-textsec text-sm">RUT / Email</label>
+                                <input pInputText [(ngModel)]="settings.email"
+                                    class="w-full !bg-darkbg !border-gray-700 !text-textmain" />
+                            </div>
+                        </div>
+                    </p-card>
+
+                    <div class="flex justify-end pb-4">
+                        <button pButton label="Guardar Configuración POS" (click)="savePosSettings()"
+                            class="p-button-success font-bold px-6 py-3 shadow-lg"></button>
                     </div>
                 </div>
+            </p-tabpanel>
 
-                <div class="flex flex-col gap-2">
-                    <label class="text-textsec text-sm">Prefijo de Ticket</label>
-                    <input pInputText [(ngModel)]="settings.ticketPrefix" placeholder="Ej: TCK-"
-                        class="dark:bg-gray-900 border-gray-700 text-textmain w-full" />
-                </div>
+            <p-tabpanel value="1">
+                <form [formGroup]="shopForm" (ngSubmit)="saveShopConfig()" class="flex flex-col gap-6 mt-4">
 
-                <div class="flex flex-col gap-2 col-span-full">
-                    <label class="text-textsec text-sm">Mensaje Pie de Página</label>
-                    <input pInputText [(ngModel)]="settings.footerMessage"
-                        placeholder="Ej: ¡Gracias por su preferencia!"
-                        class="dark:bg-gray-900 border-gray-700 text-textmain w-full" />
-                </div>
-            </div>
-        </p-card>
+                    <p-card header="Identidad y Acceso" styleClass="bg-cardbg border-none shadow-lg text-textmain">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-        <p-card header="Datos Bancarios" styleClass="bg-cardbg border-none shadow-lg text-textmain">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="flex flex-col gap-2">
-                    <label class="text-textsec text-sm">Banco</label>
-                    <input pInputText [(ngModel)]="settings.bankName"
-                        class="dark:bg-gray-900 border-gray-700 text-textmain w-full" />
-                </div>
-                <div class="flex flex-col gap-2">
-                    <label class="text-textsec text-sm">Tipo de Cuenta</label>
-                    <input pInputText [(ngModel)]="settings.accountType"
-                        class="dark:bg-gray-900 border-gray-700 text-textmain w-full" />
-                </div>
-                <div class="flex flex-col gap-2">
-                    <label class="text-textsec text-sm">Número</label>
-                    <input pInputText [(ngModel)]="settings.accountNumber"
-                        class="dark:bg-gray-900 border-gray-700 text-textmain w-full" />
-                </div>
-                <div class="flex flex-col gap-2">
-                    <label class="text-textsec text-sm">RUT / Email</label>
-                    <input pInputText [(ngModel)]="settings.email"
-                        class="dark:bg-gray-900 border-gray-700 text-textmain w-full" />
-                </div>
-            </div>
-        </p-card>
+                            <div class="flex flex-col gap-2">
+                                <label class="text-textsec text-sm">Nombre Público</label>
+                                <input pInputText formControlName="shopName"
+                                    class="w-full !bg-darkbg !border-gray-700 !text-textmain" />
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="flex flex-col gap-2">
+                                    <label class="text-textsec text-sm">WhatsApp para Pedidos</label>
+                                    <p-inputgroup>
+                                        <p-inputgroup-addon styleClass="!bg-darkbg !border-gray-700">
+                                            <i class="pi pi-whatsapp text-green-600"></i>
+                                        </p-inputgroup-addon>
+                                        <input pInputText formControlName="contactPhone" placeholder="Ej: 56912345678"
+                                            class="!bg-darkbg !border-gray-700 !text-textmain" />
+                                    </p-inputgroup>
+                                    <small class="text-xs text-textsec">Sin el +</small>
+                                    <small
+                                        *ngIf="shopForm.get('contactPhone')?.invalid && shopForm.get('contactPhone')?.touched"
+                                        class="text-red-500 text-xs">
+                                        Requerido (8-15 dígitos).
+                                    </small>
+                                </div>
+                            </div>
 
-        <div class="flex justify-end pb-10">
-            <button pButton label="Guardar Configuración" (click)="saveSettings()"
-                class="p-button-success p-button-lg font-bold"></button>
-        </div>
-    </div>
+                            <div class="flex flex-col gap-2">
+                                <label class="text-textsec text-sm">URL de tu Tienda</label>
+                                <p-inputgroup>
+                                    <p-inputgroup-addon styleClass="!bg-darkbg !border-gray-700 text-textsec">
+                                        <span class="text-xs">saaspos.com/</span>
+                                    </p-inputgroup-addon>
+                                    <input pInputText formControlName="urlSlug" placeholder="tienda-demo"
+                                        class="!bg-darkbg !border-gray-700 !text-textmain" />
+                                    <p-inputgroup-addon styleClass="!bg-darkbg !border-gray-700">
+                                        <i class="pi pi-link text-textsec"></i>
+                                    </p-inputgroup-addon>
+                                </p-inputgroup>
+                                <small class="text-xs text-textsec" *ngIf="shopForm.get('urlSlug')?.invalid">
+                                    Solo minúsculas, números y guiones.
+                                </small>
+                            </div>
+
+                            <div class="flex flex-col gap-2">
+                                <label class="text-textsec text-sm">Color de Marca</label>
+                                <div class="flex items-center gap-3 border p-2 rounded border-gray-700 bg-darkbg">
+                                    <p-colorPicker formControlName="primaryColor"></p-colorPicker>
+                                    <span class="text-textmain font-mono">{{ shopForm.get('primaryColor')?.value
+                                        }}</span>
+                                </div>
+                            </div>
+
+                            <div class="flex flex-col gap-2">
+                                <label class="text-textsec text-sm">Tiempo de Reserva de Stock</label>
+                                <div class="p-inputgroup">
+                                    <p-inputNumber formControlName="reservationMinutes" [min]="1" [max]="1440"
+                                        suffix=" min" styleClass="w-full"
+                                        inputStyleClass="!bg-darkbg !border-gray-700 !text-textmain">
+                                    </p-inputNumber>
+                                    <p-inputgroup-addon styleClass="!bg-darkbg !border-gray-700">
+                                        <i class="pi pi-clock text-textsec"></i>
+                                    </p-inputgroup-addon>
+                                </div>
+                                <small class="text-xs text-textsec">
+                                    El stock se liberará si no se paga en este tiempo.
+                                </small>
+                            </div>
+
+                            <div class="flex flex-col gap-2 justify-center">
+                                <div class="flex items-center gap-2">
+                                    <p-checkbox formControlName="active" [binary]="true" inputId="binary"></p-checkbox>
+                                    <label for="binary" class="text-textmain cursor-pointer select-none">Tienda Visible
+                                        al Público</label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div
+                            class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                            <div class="flex flex-col gap-2">
+                                <label class="text-textsec text-sm">Logo de la Tienda</label>
+                                <div class="flex gap-4 items-start">
+                                    <img *ngIf="shopForm.get('logoUrl')?.value" [src]="shopForm.get('logoUrl')?.value"
+                                        class="w-16 h-16 object-contain border border-gray-700 rounded bg-white">
+
+                                    <p-fileUpload mode="basic" chooseLabel="Subir Logo" name="logo" accept="image/*"
+                                        maxFileSize="1000000" (onSelect)="onFileSelect($event, 'logoUrl')"
+                                        styleClass="p-button-outlined p-button-secondary">
+                                    </p-fileUpload>
+                                </div>
+                                <input type="hidden" formControlName="logoUrl">
+                            </div>
+
+                            <div class="flex flex-col gap-2">
+                                <label class="text-textsec text-sm">Banner Principal</label>
+                                <div class="flex gap-4 items-start">
+                                    <img *ngIf="shopForm.get('bannerUrl')?.value"
+                                        [src]="shopForm.get('bannerUrl')?.value"
+                                        class="w-24 h-16 object-cover border border-gray-700 rounded bg-white">
+
+                                    <p-fileUpload mode="basic" chooseLabel="Subir Banner" name="banner" accept="image/*"
+                                        maxFileSize="2000000" (onSelect)="onFileSelect($event, 'bannerUrl')"
+                                        styleClass="p-button-outlined p-button-secondary">
+                                    </p-fileUpload>
+                                </div>
+                                <input type="hidden" formControlName="bannerUrl">
+                            </div>
+                        </div>
+                    </p-card>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                        <p-card header="Logística y Envíos"
+                            styleClass="bg-cardbg border-none shadow-lg text-textmain h-full">
+                            <div class="flex flex-col gap-4" formGroupName="shippingMethods">
+
+                                <div class="flex align-items-center gap-2">
+                                    <p-checkbox formControlName="pickup" [binary]="true" inputId="sm_pick"></p-checkbox>
+                                    <label for="sm_pick" class="text-textmain cursor-pointer">Habilitar Retiro en
+                                        Tienda</label>
+                                </div>
+
+                                <div
+                                    class="flex flex-col gap-3 p-3 border rounded dark:border-gray-700  transition-colors">
+
+                                    <div class="flex align-items-center gap-2">
+                                        <p-checkbox formControlName="delivery" [binary]="true"
+                                            inputId="sm_del"></p-checkbox>
+                                        <label for="sm_del" class="text-textmain font-bold cursor-pointer">Habilitar
+                                            Despacho a Domicilio</label>
+                                    </div>
+
+                                    <div *ngIf="shopForm.get('shippingMethods.delivery')?.value"
+                                        class="pl-7 flex flex-col gap-4 animate-fade-in mt-2">
+
+                                        <div>
+                                            <label class="text-xs text-textsec uppercase font-bold">Compañías
+                                                Disponibles</label>
+                                            <p-multiSelect [options]="transportCompanies" formControlName="companies"
+                                                defaultLabel="Seleccionar Transportistas" optionLabel="name"
+                                                optionValue="code"
+                                                styleClass="w-full !bg-darkbg !border-gray-700 !text-textmain"
+                                                panelStyleClass="!bg-darkbg !text-textmain" display="chip">
+                                            </p-multiSelect>
+                                        </div>
+
+                                        <div *ngIf="shopForm.get('shippingMethods.companies')?.value?.length > 0">
+                                            <label class="text-xs text-textsec uppercase font-bold">Courier
+                                                Recomendado</label>
+                                            <select
+                                                class="w-full p-2 rounded border border-gray-700 !bg-darkbg !text-textmain text-sm cursor-pointer focus:border-primary focus:outline-none"
+                                                [ngModel]="shopForm.get('shippingMethods')?.value.recommendedCourier"
+                                                (ngModelChange)="shopForm.get('shippingMethods')?.value.recommendedCourier = $event"
+                                                [ngModelOptions]="{standalone: true}">
+                                                <option value="" class="!bg-darkbg !text-textmain">Ninguno</option>
+                                                <option
+                                                    *ngFor="let c of shopForm.get('shippingMethods.companies')?.value"
+                                                    [value]="c" class="!bg-darkbg !text-textmain">
+                                                    {{ c | titlecase }}
+                                                </option>
+                                            </select>
+                                            <small class="text-xs text-textsec">Este aparecerá destacado en el
+                                                checkout.</small>
+                                        </div>
+
+                                        <div *ngIf="shopForm.get('shippingMethods.companies')?.value?.length > 0"
+                                            class="flex flex-col gap-3">
+                                            <label class="text-xs text-textsec uppercase font-bold">Días de entrega al
+                                                transporte</label>
+
+                                            <div *ngFor="let courier of shopForm.get('shippingMethods.companies')?.value"
+                                                class="p-3 border border-gray-700 rounded bg-black/20">
+                                                <div class="flex items-center gap-2 mb-2">
+                                                    <i class="pi pi-truck text-primary"></i>
+                                                    <p class="font-bold text-sm capitalize text-textmain">{{ courier }}
+                                                    </p>
+                                                </div>
+
+                                                <p-multiSelect [options]="weekDays"
+                                                    [ngModel]="shopForm.get('shippingMethods')?.value.dispatchDays?.[courier]"
+                                                    (ngModelChange)="updateDispatchDays(courier, $event)"
+                                                    [ngModelOptions]="{standalone: true}"
+                                                    defaultLabel="Seleccionar días de salida" optionLabel="name"
+                                                    optionValue="code" display="chip"
+                                                    styleClass="w-full !bg-darkbg !border-gray-600 text-xs !text-textmain"
+                                                    panelStyleClass="!bg-darkbg !text-textmain">
+                                                </p-multiSelect>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </p-card>
+
+                        <p-card header="Métodos de Pago"
+                            styleClass="bg-cardbg border-none shadow-lg text-textmain h-full">
+                            <div class="flex flex-col gap-4" formGroupName="paymentMethods">
+
+                                <div class="flex align-items-center gap-2">
+                                    <p-checkbox formControlName="cash" [binary]="true" inputId="pm_cash"></p-checkbox>
+                                    <label for="pm_cash" class="text-textmain cursor-pointer">Efectivo</label>
+                                </div>
+
+                                <div class="flex align-items-center gap-2">
+                                    <p-checkbox formControlName="transfer" [binary]="true"
+                                        inputId="pm_trans"></p-checkbox>
+                                    <label for="pm_trans" class="text-textmain cursor-pointer">Transferencia
+                                        Bancaria</label>
+                                </div>
+
+                                <div
+                                    class="flex align-items-center gap-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                                    <p-checkbox formControlName="cod_shipping" [binary]="true"
+                                        inputId="pm_cod"></p-checkbox>
+                                    <div class="flex flex-col">
+                                        <label for="pm_cod" class="text-textmain cursor-pointer font-medium">Cobro en
+                                            Domicilio (Carrier)</label>
+                                        <span class="text-xs text-textsec">El transportista (ej. Starken) cobra al
+                                            entregar.</span>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </p-card>
+                    </div>
+
+                    <div class="flex justify-end pb-4">
+                        <button pButton type="submit" [label]="isShopLoading ? 'Guardando...' : 'Guardar Cambios'"
+                            [disabled]="isShopLoading" class="p-button-primary font-bold px-6 py-3 shadow-lg">
+                        </button>
+                    </div>
+
+                </form>
+            </p-tabpanel>
+
+        </p-tabpanels>
+    </p-tabs>
 </div>

@@ -40,6 +40,11 @@
                     *ngTemplateOutlet="menuLink; context: {path: '/dashboard', icon: 'pi-home', label: 'Dashboard'}"></ng-container>
             </ng-container>
 
+            <ng-container *ngIf="authService.hasRole(['SUPER_ADMIN','TENANT_ADMIN', 'CASHIER'])">
+                <ng-container
+                    *ngTemplateOutlet="menuLink; context: {path: '/web-orders', icon: 'pi-globe', label: 'Pedidos Web'}"></ng-container>
+            </ng-container>
+
             <ng-container *ngIf="authService.hasRole(['SUPER_ADMIN'])">
                 <ng-container
                     *ngTemplateOutlet="menuLink; context: {path: '/admin/tenants', icon: 'pi-building', label: 'Gestión de Clientes'}"></ng-container>
@@ -55,9 +60,20 @@
                     *ngTemplateOutlet="menuLink; context: {path: '/products', icon: 'pi-box', label: 'Productos'}"></ng-container>
             </ng-container>
 
+            <ng-container *ngIf="authService.hasRole(['SUPER_ADMIN','TENANT_ADMIN', 'VENDOR'])">
+                <ng-container
+                    *ngTemplateOutlet="menuLink; context: {path: '/reports/inventory', icon: 'pi-history', label: 'Historial & Reportes'}">
+                </ng-container>
+            </ng-container>
+
             <ng-container *ngIf="authService.hasRole(['SUPER_ADMIN','TENANT_ADMIN','CASHIER'])">
                 <ng-container
                     *ngTemplateOutlet="menuLink; context: {path: '/pos', icon: 'pi-shopping-cart', label: 'Punto de Venta'}"></ng-container>
+            </ng-container>
+
+            <ng-container *ngIf="authService.hasRole(['SUPER_ADMIN','TENANT_ADMIN','CASHIER'])">
+                <ng-container
+                    *ngTemplateOutlet="menuLink; context: {path: '/pos/sales', icon: 'pi-list', label: 'Historial Ventas'}"></ng-container>
             </ng-container>
 
             <ng-container *ngIf="authService.hasRole(['SUPER_ADMIN','TENANT_ADMIN'])">

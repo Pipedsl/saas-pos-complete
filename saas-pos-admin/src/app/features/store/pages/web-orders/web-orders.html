@@ -1,0 +1,100 @@
+<p-toast position="top-center"></p-toast>
+
+<div class="p-6 min-h-screen bg-darkbg text-textmain transition-colors duration-300">
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+        <div
+            class="bg-gradient-to-r from-emerald-500 to-green-600 rounded-xl p-5 text-white shadow-lg flex flex-col justify-between relative overflow-hidden">
+            <div class="absolute right-0 top-0 w-32 h-32 bg-white/10 rounded-bl-full -mr-4 -mt-4 pointer-events-none">
+            </div>
+            <div class="relative z-10">
+                <h3 class="font-bold text-lg flex items-center gap-2">
+                    <i class="pi pi-shop"></i> Tu Tienda Online
+                </h3>
+                <p class="text-sm opacity-90 mt-1">Comparte tu catálogo para recibir pedidos.</p>
+            </div>
+            <div class="mt-5 flex gap-2 relative z-10">
+                <button (click)="shareOnWhatsApp()"
+                    class="bg-white text-emerald-600 px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-2 hover:bg-gray-50 transition-colors shadow-sm flex-1 justify-center">
+                    <i class="pi pi-whatsapp text-lg"></i> Compartir
+                </button>
+                <button (click)="copyLink()" pTooltip="Copiar Link" tooltipPosition="top"
+                    class="bg-black/20 text-white px-3 py-2 rounded-lg text-sm hover:bg-black/30 transition-colors">
+                    <i class="pi pi-copy text-lg"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">Pedidos Web</h1>
+        <button (click)="loadOrders()" class="text-sm text-primary hover:underline font-medium">
+            <i class="pi pi-refresh mr-1"></i> Recargar
+        </button>
+    </div>
+
+    <div *ngIf="!isLoading && orders.length > 0"
+        class="overflow-hidden bg-cardbg rounded-lg shadow border border-gray-200 dark:border-gray-700">
+        <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+                <thead class="bg-gray-50 dark:bg-slate-800 text-textsec uppercase font-bold text-xs">
+                    <tr>
+                        <th class="px-6 py-3">Orden #</th>
+                        <th class="px-6 py-3">Fecha</th>
+                        <th class="px-6 py-3">Cliente</th>
+                        <th class="px-6 py-3">Método</th>
+                        <th class="px-6 py-3">Total</th>
+                        <th class="px-6 py-3">Estado</th>
+                        <th class="px-6 py-3 text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                    <tr *ngFor="let order of orders"
+                        class="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+
+                        <td class="px-6 py-4 font-mono font-medium text-textmain">
+                            {{ order.orderNumber }}
+                        </td>
+
+                        <td class="px-6 py-4 text-textsec">
+                            {{ order.createdAt | date:'short' }}
+                        </td>
+
+                        <td class="px-6 py-4">
+                            <div class="font-bold text-textmain">{{ order.customerName }}</div>
+                            <div class="text-xs text-textsec">{{ order.customerPhone }}</div>
+                        </td>
+
+                        <td class="px-6 py-4 text-textsec">
+                            <div class="flex flex-col">
+                                <span class="text-xs font-bold uppercase">
+                                    {{ order.shippingMethod === 'PICKUP' ? 'Retiro' : 'Delivery' }}
+                                </span>
+                                <span class="text-xs opacity-75">{{ order.paymentMethod }}</span>
+                            </div>
+                        </td>
+
+                        <td class="px-6 py-4 font-bold text-primary text-base">
+                            {{ order.finalTotal | currency:'CLP':'symbol-narrow':'1.0-0' }}
+                        </td>
+
+                        <td class="px-6 py-4">
+                            <span [ngClass]="getStatusClass(order.status)"
+                                class="px-2.5 py-1 rounded-full text-xs font-bold tracking-wide">
+                                {{ order.status }}
+                            </span>
+                        </td>
+
+                        <td class="px-6 py-4 text-right">
+                            <button [routerLink]="['/admin/web-orders/edit', order.orderNumber]"
+                                class="text-primary hover:text-blue-400 font-medium text-xs transition-colors border border-primary/30 px-3 py-1 rounded hover:bg-primary/10">
+                                Ver Detalle
+                            </button>
+                        </td>
+
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

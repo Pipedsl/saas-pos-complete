@@ -3,6 +3,22 @@
     <p-card header="Nuevo Producto" styleClass="bg-cardbg border-none shadow-lg w-full max-w-6xl">
 
         <form [formGroup]="productForm" (ngSubmit)="onSubmit()" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div class="col-span-1 lg:col-span-12 mb-4">
+                <div class="flex flex-wrap gap-4 bg-darkbg p-4 rounded border border-gray-700">
+                    <div class="flex align-items-center">
+                        <p-radioButton name="productType" value="STANDARD" formControlName="productType"
+                            inputId="typeStandard"></p-radioButton>
+                        <label for="typeStandard" class="ml-2 font-bold cursor-pointer text-textmain">Producto
+                            Estándar</label>
+                    </div>
+                    <div class="flex align-items-center">
+                        <p-radioButton name="productType" value="BUNDLE" formControlName="productType"
+                            inputId="typeBundle"></p-radioButton>
+                        <label for="typeBundle" class="ml-2 font-bold cursor-pointer text-primary">Pack /
+                            Promoción</label>
+                    </div>
+                </div>
+            </div>
 
             <div class="col-span-1 lg:col-span-7 flex flex-col gap-4 w-full min-w-0">
 
@@ -68,6 +84,16 @@
                     <input type="hidden" formControlName="imageUrl">
                 </div>
 
+                <div class="flex items-center gap-3">
+                    <p-checkbox formControlName="isPublic" [binary]="true"></p-checkbox>
+                    <label class="text-sm text-textmain cursor-pointer select-none">
+                        <span class="font-medium">Mostrar en Catálogo Online</span>
+                        <p class="text-xs text-gray-500">Si está activo, los clientes podrán comprarlo en la web.
+                        </p>
+                    </label>
+                </div>
+
+
                 <div class="flex flex-col gap-2 w-full">
                     <label class="text-textsec">Nombre</label>
                     <input pInputText formControlName="name" class="w-full bg-darkbg border-gray-700 text-textmain" />
@@ -119,16 +145,81 @@
                         </div>
                     </div>
                 </div>
+                <div *ngIf="isBundle"
+                    class="col-span-1 lg:col-span-12 flex flex-col gap-2 mb-6 bg-cardbg p-4 rounded border border-primary/30">
+                    <h3 class="text-primary font-bold text-lg mb-2"><i class="pi pi-box mr-2"></i>Contenido del Pack
+                    </h3>
+
+                    <div class="flex flex-col gap-1 mb-3">
+                        <label class="text-sm text-textsec">Agregar productos al pack</label>
+                        <p-autocomplete [(ngModel)]="childProductSearchQuery" [ngModelOptions]="{standalone: true}"
+                            [suggestions]="suggestedChildProducts" (completeMethod)="filterChildProducts($event)"
+                            (onSelect)="addChildProduct($event)" field="name" placeholder="Buscar por nombre o SKU..."
+                            [delay]="300" styleClass="w-full"
+                            inputStyleClass="w-full bg-darkbg border-gray-700 text-textmain">
+                            <ng-template let-prod pTemplate="item">
+                                <div class="flex justify-between w-full gap-4">
+                                    <span>{{prod.name}}</span>
+                                    <span class="text-xs font-mono bg-gray-800 px-1 rounded">{{prod.sku}}</span>
+                                </div>
+                            </ng-template>
+                        </p-autocomplete>
+                    </div>
+
+                    <div *ngIf="bundleItems.length > 0" class="border border-gray-700 rounded overflow-hidden">
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-gray-800 text-textsec">
+                                <tr>
+                                    <th class="p-2">Producto</th>
+                                    <th class="p-2 w-24 text-center">Cant.</th>
+                                    <th class="p-2 w-10"></th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-700">
+                                <tr *ngFor="let item of bundleItems; let i = index">
+                                    <td class="p-2">
+                                        <p class="font-bold text-textmain">{{item.componentName}}</p>
+                                        <span class="text-xs text-textsec">{{item.componentSku}}</span>
+                                    </td>
+                                    <td class="p-2 text-center">
+                                        <p-inputNumber [(ngModel)]="item.quantity" [ngModelOptions]="{standalone: true}"
+                                            [min]="1" [showButtons]="true" buttonLayout="horizontal"
+                                            inputStyleClass="w-12 text-center p-1 bg-darkbg text-textmain border-0 font-bold"
+                                            (onInput)="calculateBundleCost()">
+                                        </p-inputNumber>
+                                    </td>
+                                    <td class="p-2 text-center">
+                                        <button pButton icon="pi pi-trash"
+                                            class="p-button-text p-button-danger p-button-sm"
+                                            (click)="removeBundleItem(i)"></button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div *ngIf="bundleItems.length === 0"
+                        class="text-center py-4 text-textsec text-sm border border-dashed border-gray-700 rounded">
+                        Busca y agrega productos para armar el pack.
+                    </div>
+
+                    <small class="text-yellow-500 mt-2 block text-xs">
+                        <i class="pi pi-info-circle mr-1"></i>
+                        El stock de este Pack se calculará automáticamente según la disponibilidad de sus componentes.
+                    </small>
+                </div>
 
                 <div class="flex flex-col gap-2 w-full">
-                    <label class="text-textsec">Stock Inicial</label>
-                    <p-inputNumber formControlName="stockCurrent" [showButtons]="true" mode="decimal"
-                        [minFractionDigits]="0" [maxFractionDigits]="3" locale="es-CL" styleClass="w-full"
-                        inputStyleClass="bg-darkbg border-gray-700 text-textmain w-full">
+                    <label class="text-textsec">
+                        {{ isBundle ? 'Límite de Promoción (Opcional)' : 'Stock Inicial' }}
+                    </label>
+
+                    <p-inputNumber formControlName="stockCurrent" [showButtons]="true" [min]="0" ...>
                     </p-inputNumber>
-                    <small class="text-red-500"
-                        *ngIf="productForm.get('stockCurrent')?.invalid && productForm.get('stockCurrent')?.touched">
-                        Requerido (Mínimo 0).
+
+                    <small class="text-textsec" *ngIf="isBundle">
+                        Déjalo en 0 para que sea "Ilimitado" (dependerá solo del stock de los productos).
+                        Si pones un número (ej: 20), la promoción se acabará al vender esa cantidad.
                     </small>
                 </div>
 

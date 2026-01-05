@@ -8,11 +8,9 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Data
 @Entity
@@ -100,5 +98,59 @@ public class Product {
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<ProductPriceHistory> priceHistory;
+
+    // NUEVO: Tipo de producto
+    @Column(name = "product_type")
+    private String productType = "STANDARD"; // STANDARD, BUNDLE
+
+    // NUEVO: Relación con los items del pack (Si este producto es un pack)
+    @OneToMany(mappedBy = "bundleProduct", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<BundleItem> bundleItems = new ArrayList<>();
+
+    // Helper para agregar componentes
+    public void addBundleItem(Product component, BigDecimal qty) {
+        BundleItem item = new BundleItem();
+        item.setBundleProduct(this);
+        item.setComponentProduct(component);
+        item.setQuantity(qty);
+        this.bundleItems.add(item);
+    }
+
+    /**
+     * Calcula el stock REAL disponible para la venta.
+     * Si es ESTÁNDAR: Devuelve el stock físico.
+     * Si es PACK: Calcula cuántos se pueden armar según los componentes y el límite manual.
+     */
+    public BigDecimal getEffectiveStock() {
+        if (!"BUNDLE".equals(this.productType)) {
+            return this.stockCurrent != null ? this.stockCurrent : BigDecimal.ZERO;
+        }
+
+        // CAMBIO CLAVE:
+        // Si es NULL -> Es "Infinito" (Pack Virtual).
+        // Si es 0 -> Es "Agotado" (Pack Limitado que se acabó).
+        BigDecimal limit = (this.stockCurrent == null)
+                ? new BigDecimal("999999")
+                : this.stockCurrent;
+
+        // 2. Revisamos cada componente
+        if (this.bundleItems != null) {
+            for (BundleItem item : this.bundleItems) {
+                Product component = item.getComponentProduct();
+                BigDecimal componentStock = component.getStockCurrent() != null ? component.getStockCurrent() : BigDecimal.ZERO;
+                BigDecimal qtyNeededPerPack = item.getQuantity();
+
+                if (qtyNeededPerPack.compareTo(BigDecimal.ZERO) > 0) {
+                    BigDecimal maxPacksFromComponent = componentStock.divide(qtyNeededPerPack, 0, RoundingMode.FLOOR);
+
+                    if (maxPacksFromComponent.compareTo(limit) < 0) {
+                        limit = maxPacksFromComponent;
+                    }
+                }
+            }
+        }
+
+        return limit;
+    }
 
 }

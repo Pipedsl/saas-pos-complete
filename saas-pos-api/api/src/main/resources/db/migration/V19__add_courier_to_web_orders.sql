@@ -1,0 +1,1 @@
+ALTER TABLE web_orders ADD COLUMN courier VARCHAR(255);

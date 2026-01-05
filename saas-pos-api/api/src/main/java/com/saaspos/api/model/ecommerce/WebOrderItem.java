@@ -1,6 +1,7 @@
 package com.saaspos.api.model.ecommerce;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.saaspos.api.model.Product;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -23,6 +24,7 @@ public class WebOrderItem {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
+    @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
     private Product product;
 
     // --- Snapshots (Historial Fidedigno) ---

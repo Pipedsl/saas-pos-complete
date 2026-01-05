@@ -65,6 +65,12 @@ export class ProductFormComponent implements OnInit {
 
   uploadingImage = false;
 
+  // VARIABLES NUEVAS PARA PACKS
+  isBundle = false; // Controla si mostramos la UI de Pack
+  bundleItems: any[] = []; // Lista visual de componentes
+  childProductSearchQuery: string = '';
+  suggestedChildProducts: Product[] = [];
+
   constructor(
     private fb: FormBuilder,
     private productsService: ProductsService,
@@ -82,6 +88,7 @@ export class ProductFormComponent implements OnInit {
       sku: ['', Validators.required],
       name: ['', Validators.required],
       imageUrl: [''],
+      isPublic: [true],
       description: [''],
       selectedCategory: [null, Validators.required],
       selectedSupplier: [null], // Opcional por ahora
@@ -96,6 +103,7 @@ export class ProductFormComponent implements OnInit {
 
       priceNeto: [0],
       marginPercent: [0],
+      productType: ['STANDARD'],
 
     });
   }
@@ -112,6 +120,15 @@ export class ProductFormComponent implements OnInit {
       } else {
         // 2. Si es modo CREAR, activamos el detector de SKU
         // this.listenToSkuChanges();
+      }
+    });
+
+    this.productForm.get('productType')?.valueChanges.subscribe(val => {
+      this.isBundle = (val === 'BUNDLE');
+      if (this.isBundle) {
+        this.productForm.patchValue({ stockCurrent: 0 });
+      } else {
+        this.productForm.get('stockCurrent')?.enable();
       }
     });
   }
@@ -147,7 +164,18 @@ export class ProductFormComponent implements OnInit {
           priceNeto: product.priceNeto,
           marginPercent: product.marginPercent,
 
+          imageUrl: product.imageUrl,
+          isPublic: product.isPublic
+
         });
+
+        if (product.productType) {
+          this.productForm.patchValue({ productType: product.productType });
+        }
+
+        if (product.productType === 'BUNDLE' && product.bundleItems) {
+          this.bundleItems = product.bundleItems;
+        }
 
         // 2. Recuperar Categoría (Objeto completo para el Autocomplete)
         if (product.categoryId && product.categoryName) {
@@ -174,6 +202,8 @@ export class ProductFormComponent implements OnInit {
 
         // 4. Bloquear SKU en edición
         this.productForm.get('sku')?.disable();
+
+
 
       },
       error: (err) => {
@@ -342,6 +372,58 @@ export class ProductFormComponent implements OnInit {
     this.attributesList.splice(index, 1);
   }
 
+  filterChildProducts(event: any) {
+    const query = event.query;
+    this.productsService.searchProducts(query).subscribe(data => {
+      // Filtrar para que no se pueda agregar el mismo pack a sí mismo (si fuera edición)
+      this.suggestedChildProducts = data.filter(p => p.id !== this.productId);
+    });
+  }
+
+  addChildProduct(event: any) {
+    const product = event.value; // El producto seleccionado
+
+    // Verificar si ya está en la lista
+    const existing = this.bundleItems.find(item => item.componentId === product.id);
+
+    if (existing) {
+      this.messageService.add({ severity: 'warn', summary: 'Ya existe', detail: 'Este producto ya está en el pack. Aumenta la cantidad.' });
+    } else {
+      this.bundleItems.push({
+        componentId: product.id,
+        componentName: product.name,
+        componentSku: product.sku,
+        quantity: 1, // Cantidad por defecto
+        costPrice: product.costPrice // Para referencia visual
+      });
+    }
+
+    // Limpiar buscador
+    this.childProductSearchQuery = '';
+    // Opcional: Recalcular costo sugerido del pack
+    this.calculateBundleCost();
+  }
+
+  removeBundleItem(index: number) {
+    this.bundleItems.splice(index, 1);
+    this.calculateBundleCost();
+  }
+
+  calculateBundleCost() {
+    if (!this.isBundle) return;
+
+    let totalCost = 0;
+    this.bundleItems.forEach(item => {
+      // Asumiendo que guardamos el costo al agregarlo, o podrías traerlo fresco
+      const cost = item.costPrice || 0;
+      totalCost += (cost * item.quantity);
+    });
+
+    // Actualizar el costo del formulario
+    this.productForm.patchValue({ costPrice: totalCost });
+    this.calculateMath(); // Recalcular márgenes
+  }
+
   onSubmit() {
     if (this.productForm.invalid) {
       this.productForm.markAllAsTouched(); // <--- ESTA ES LA CLAVE
@@ -376,6 +458,7 @@ export class ProductFormComponent implements OnInit {
       taxPercent: formValue.taxPercent,
 
       priceNeto: formValue.priceNeto,
+      isPublic: formValue.isPublic,
 
 
       stockCurrent: formValue.stockCurrent,
@@ -386,6 +469,12 @@ export class ProductFormComponent implements OnInit {
       attributes: attributesJson,
       categoryId: formValue.selectedCategory?.id, // Extraer solo el ID
       supplierId: formValue.selectedSupplier?.id, // (Pendiente hasta que tengas proveedores)
+
+      productType: formValue.productType,
+      bundleItems: this.isBundle ? this.bundleItems.map(item => ({
+        componentId: item.componentId,
+        quantity: item.quantity
+      })) : []
     };
 
     // 3. DECISIÓN: ¿CREAR O ACTUALIZAR?

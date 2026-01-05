@@ -1,11 +1,13 @@
 package com.saaspos.api.dto;
 
+import jakarta.persistence.Column;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -39,11 +41,19 @@ public class ProductDto {
     private BigDecimal marginPercent;  // Output (Calculado para mostrar ganancia)
     private String imageUrl;
     private Boolean isActive;
+    private Boolean isPublic; // ¿Se muestra en la web?
 
+    private String productType; // "STANDARD" o "BUNDLE"
+    private List<BundleItemDto> bundleItems; // Lista de hijos
 
-
-
-
+    @Data
+    public static class BundleItemDto {
+        private UUID componentId;
+        private BigDecimal quantity;
+        // Campos de lectura para el frontend
+        private String componentName;
+        private String componentSku;
+    }
 
 
 
