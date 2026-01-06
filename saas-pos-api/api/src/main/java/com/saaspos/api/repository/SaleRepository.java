@@ -12,7 +12,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface SaleRepository extends JpaRepository<Sale, UUID> {
-
+    boolean existsBySaleNumber(String saleNumber);
     // 1. SUMA TOTAL (Para el Dashboard)
     @Query(value = "SELECT COALESCE(SUM(total_amount), 0) FROM sales WHERE tenant_id = :tenantId AND CAST(created_at AT TIME ZONE 'America/Santiago' AS DATE) = :date", nativeQuery = true)
     BigDecimal sumTotalSalesByDate(@Param("tenantId") UUID tenantId, @Param("date") LocalDate date);

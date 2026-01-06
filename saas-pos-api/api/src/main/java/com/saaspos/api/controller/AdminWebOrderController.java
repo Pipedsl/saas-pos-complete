@@ -8,6 +8,9 @@ import com.saaspos.api.model.Product;
 import com.saaspos.api.model.User;
 import com.saaspos.api.model.ecommerce.WebOrder;
 import com.saaspos.api.model.ecommerce.WebOrderItem;
+import com.saaspos.api.model.Sale;
+import com.saaspos.api.model.SaleItem;
+import  com.saaspos.api.repository.SaleRepository;
 import com.saaspos.api.repository.InventoryLogRepository; // <--- NUEVO
 import com.saaspos.api.repository.ProductRepository;
 import com.saaspos.api.repository.UserRepository;
@@ -19,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Map;
 import java.util.UUID;
 
@@ -29,16 +33,19 @@ public class AdminWebOrderController {
     private final WebOrderRepository webOrderRepository;
     private final UserRepository userRepository;
     private final ProductRepository productRepository;
-    private final InventoryLogRepository inventoryLogRepository; // <--- INYECCIÓN
+    private final InventoryLogRepository inventoryLogRepository;
+    private final SaleRepository saleRepository;
 
     public AdminWebOrderController(WebOrderRepository webOrderRepository,
                                    UserRepository userRepository,
                                    ProductRepository productRepository,
-                                   InventoryLogRepository inventoryLogRepository) {
+                                   InventoryLogRepository inventoryLogRepository,
+                                   SaleRepository saleRepository) {
         this.webOrderRepository = webOrderRepository;
         this.userRepository = userRepository;
         this.productRepository = productRepository;
         this.inventoryLogRepository = inventoryLogRepository;
+        this.saleRepository = saleRepository;
     }
 
     @GetMapping("/{orderNumber}")
@@ -60,7 +67,6 @@ public class AdminWebOrderController {
                 .orElseThrow(() -> new RuntimeException("Pedido no encontrado"));
 
         String oldStatus = order.getStatus();
-
         if (oldStatus.equals(newStatus)) {
             return ResponseEntity.ok(order);
         }
@@ -86,6 +92,13 @@ public class AdminWebOrderController {
             if (newStatus.equals("CANCELLED")) {
                 order.setEditReason("Cancelado manualmente por: " + currentUser.getFullName());
             }
+
+            // --- NUEVA LÓGICA: GENERAR VENTA PARA EL DASHBOARD ---
+            // Si el pedido pasa a PAGADO, ENVIADO o ENTREGADO, lo registramos como Venta
+            if (isSaleCompletedStatus(newStatus)) {
+                createSaleFromWebOrder(order, tenantId);
+            }
+            // -----------------------------------------------------
 
             return ResponseEntity.ok(webOrderRepository.save(order));
 
@@ -289,5 +302,67 @@ public class AdminWebOrderController {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         return userRepository.findByEmail(auth.getName())
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+    }
+
+    // --- NUEVOS MÉTODOS PARA SINCRONIZAR CON DASHBOARD ---
+
+    private boolean isSaleCompletedStatus(String status) {
+        return status.equals("PAID") || status.equals("SHIPPED") || status.equals("DELIVERED") || status.equals("COMPLETED");
+    }
+
+    private void createSaleFromWebOrder(WebOrder order, UUID tenantId) {
+        // 1. Evitar duplicados: Verificamos si ya existe una venta con este número de orden web
+        // Usaremos el campo saleNumber para guardar la referencia "WEB-1234"
+        if (saleRepository.existsBySaleNumber(order.getOrderNumber())) {
+            return; // Ya fue contabilizada
+        }
+
+        System.out.println("Generando Venta contable para Orden Web: " + order.getOrderNumber());
+
+        Sale sale = new Sale();
+        sale.setTenantId(tenantId);
+        sale.setSaleNumber(order.getOrderNumber()); // "WEB-5919"
+        sale.setStatus("COMPLETED"); // Estado final para el dashboard
+
+        // Copiar totales
+        sale.setTotalAmount(order.getFinalTotal());
+
+        // Re-calcular netos e impuestos para que el reporte de ganancias funcione
+        // (Asumimos 19% IVA estándar de Chile para simplificar, o podrías sumar item por item)
+        BigDecimal total = order.getFinalTotal();
+        BigDecimal subtotal = total.divide(new BigDecimal("1.19"), 0, RoundingMode.HALF_UP);
+        BigDecimal tax = total.subtract(subtotal);
+
+        sale.setSubtotalAmount(subtotal);
+        sale.setTotalTax(tax);
+
+        // Guardar Cabecera primero
+        sale = saleRepository.save(sale);
+
+        // 2. Copiar Ítems (Solo para registro financiero, NO descontamos stock de nuevo)
+        for (WebOrderItem webItem : order.getItems()) {
+            SaleItem saleItem = new SaleItem();
+            saleItem.setProduct(webItem.getProduct());
+            saleItem.setQuantity(webItem.getQuantity());
+            saleItem.setUnitPrice(webItem.getUnitPriceAtMoment());
+            saleItem.setTotal(webItem.getSubtotal());
+
+            // Costos e Impuestos del item
+            saleItem.setCostPriceAtSale(webItem.getCostPriceAtMoment());
+
+            // Cálculos matemáticos del item
+            BigDecimal price = webItem.getUnitPriceAtMoment();
+            BigDecimal netPrice = price.divide(new BigDecimal("1.19"), 4, RoundingMode.HALF_UP);
+            BigDecimal unitTax = price.subtract(netPrice);
+
+            saleItem.setNetPriceAtSale(netPrice);
+            saleItem.setUnitTax(unitTax);
+            saleItem.setTaxAmountAtSale(unitTax.multiply(webItem.getQuantity()));
+
+            sale.addItem(saleItem);
+        }
+
+        // Guardar Venta completa
+        saleRepository.save(sale);
     }
 }
