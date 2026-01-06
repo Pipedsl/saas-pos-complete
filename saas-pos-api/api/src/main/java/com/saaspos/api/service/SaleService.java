@@ -35,15 +35,13 @@ public class SaleService {
     @Transactional
     public Sale processSale(SaleRequest request, UUID tenantId) {
         Sale sale = new Sale();
-        // 1. GENERAR ID MANUALMENTE PARA LOS LOGS
-        // Esto es clave para que los logs sepan a qué venta pertenecen antes de guardarla
-        sale.setId(UUID.randomUUID());
+        // ELIMINADO: sale.setId(...) -> Dejamos que Hibernate/DB genere el UUID
         sale.setTenantId(tenantId);
 
         String email = SecurityContextHolder.getContext().getAuthentication().getName();
         User currentUser = userRepository.findByEmail(email).orElseThrow();
 
-        // Totales y Cabecera
+        // 1. Configurar Cabecera
         BigDecimal total = request.getTotalAmount();
         sale.setTotalAmount(total);
 
@@ -56,6 +54,13 @@ public class SaleService {
         sale.setSaleNumber("TCK-" + System.currentTimeMillis());
         sale.setStatus("COMPLETED");
 
+        // --- CORRECCIÓN CRÍTICA ---
+        // Guardamos la venta "vacía" primero. Esto hace el INSERT en la BD.
+        // Hibernate genera el ID y lo asigna al objeto 'sale'.
+        sale = saleRepository.save(sale);
+        // --------------------------
+
+        // 2. Procesar Ítems (Ahora sale.getId() es válido y existe en BD)
         for (SaleRequest.SaleItemRequest itemDto : request.getItems()) {
             Product product = productRepository.findById(itemDto.getProductId())
                     .orElseThrow(() -> new RuntimeException("Producto no existe"));
@@ -88,7 +93,7 @@ public class SaleService {
                     child.setStockCurrent(oldStock.subtract(totalChildQty));
                     productRepository.save(child);
 
-                    // Log del componente hijo
+                    // Log del componente hijo (Usando el ID generado)
                     createLog(child, currentUser, "BUNDLE_SALE", totalChildQty.negate(), oldStock, child.getStockCurrent(),
                             "Venta Pack POS: " + product.getName(), sale.getId());
                 }
@@ -101,7 +106,7 @@ public class SaleService {
                 product.setStockCurrent(currentStock.subtract(qtyToSell));
                 productRepository.save(product);
 
-                // IMPORTANTE: Log de venta normal para que aparezca la etiqueta POS
+                // Log de venta normal (Usando el ID generado)
                 createLog(product, currentUser, "SALE", qtyToSell.negate(), oldStock, product.getStockCurrent(),
                         "Venta POS", sale.getId());
             }
@@ -147,9 +152,10 @@ public class SaleService {
             saleItem.setUnitPrice(finalUnitPrice);
             saleItem.setTotal(finalUnitPrice.multiply(qtyToSell));
 
+            // Agregamos a la lista de la entidad (Cascade se encargará de guardar esto al final)
             sale.addItem(saleItem);
 
-            // Log de Cambio de Precio
+            // Log de Cambio de Precio (Usando el ID generado)
             if (priceChanged) {
                 String logMsg = String.format("Precio modificado en caja: $%s -> $%s", product.getPriceFinal(), finalUnitPrice);
                 createLog(product, currentUser, "PRICE_OVERRIDE", BigDecimal.ZERO, product.getStockCurrent(), product.getStockCurrent(),
@@ -157,10 +163,11 @@ public class SaleService {
             }
         }
 
+        // 3. GUARDADO FINAL (UPDATE)
+        // Esto guarda los SaleItems gracias a CascadeType.ALL en la entidad Sale
         return saleRepository.save(sale);
     }
 
-    // --- MÉTODO CORREGIDO: Acepta UUID saleId ---
     private void createLog(Product p, User u, String action, BigDecimal change, BigDecimal oldStk, BigDecimal newStk, String reason, UUID saleId) {
         InventoryLog log = new InventoryLog();
         log.setTenantId(p.getTenantId());
@@ -173,7 +180,7 @@ public class SaleService {
         log.setOldStock(oldStk);
         log.setNewStock(newStk);
         log.setReason(reason);
-        log.setSaleId(saleId); // Ahora sí compila porque recibe el parámetro
+        log.setSaleId(saleId);
         inventoryLogRepository.save(log);
     }
 }
