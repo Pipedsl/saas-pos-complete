@@ -11,7 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/public/store") // <--- OJO CON ESTA RUTA
+@RequestMapping("/api/public/store")
+@CrossOrigin(origins = "*")
 public class StorefrontController {
 
     private final StorefrontService storefrontService;

@@ -11,8 +11,9 @@ import com.saaspos.api.model.ecommerce.WebOrderItem;
 import com.saaspos.api.repository.ProductRepository;
 import com.saaspos.api.repository.ShopConfigRepository;
 import com.saaspos.api.repository.WebOrderRepository;
-import jakarta.transaction.Transactional;
+
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -56,6 +57,7 @@ public class StorefrontService {
     }
 
     // 2. Obtener Productos Públicos
+    @Transactional(readOnly = true)
     public List<PublicProductDto> getShopProducts(String slug) {
         // Primero buscamos la config para saber el Tenant ID
         ShopConfig config = shopConfigRepository.findByUrlSlug(slug)
