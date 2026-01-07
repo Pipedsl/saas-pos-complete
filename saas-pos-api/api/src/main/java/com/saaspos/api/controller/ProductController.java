@@ -3,7 +3,7 @@ package com.saaspos.api.controller;
 import com.saaspos.api.dto.ProductDto;
 import com.saaspos.api.model.*;
 import com.saaspos.api.repository.*;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -296,6 +296,7 @@ public class ProductController {
     }
 
     @GetMapping("/low-stock")
+    @Transactional(readOnly = true)
     public ResponseEntity<List<ProductDto>> getLowStockProducts() {
         UUID tenantId = getCurrentTenantId();
         List<Product> all = productRepository.findByTenantId(tenantId);
