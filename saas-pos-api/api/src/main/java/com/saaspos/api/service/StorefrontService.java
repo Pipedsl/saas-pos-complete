@@ -4,6 +4,7 @@ import com.saaspos.api.dto.ecommerce.PublicProductDto;
 import com.saaspos.api.dto.ecommerce.PublicShopDto;
 import com.saaspos.api.dto.ecommerce.WebOrderItemRequest;
 import com.saaspos.api.dto.ecommerce.WebOrderRequest;
+import com.saaspos.api.model.BundleItem;
 import com.saaspos.api.model.Product;
 import com.saaspos.api.model.ecommerce.ShopConfig;
 import com.saaspos.api.model.ecommerce.WebOrder;
@@ -83,16 +84,14 @@ public class StorefrontService {
         order.setCustomerPhone(request.getCustomerPhone());
         order.setCustomerEmail(request.getCustomerEmail());
         order.setCustomerRut(request.getCustomerRut());
+
         if ("DELIVERY".equals(request.getDeliveryMethod())) {
             order.setShippingRegion(request.getRegion());
             order.setShippingCommune(request.getCommune());
             order.setShippingStreet(request.getStreetAndNumber());
-
-            // Concatenamos para visualización rápida en tablas antiguas
             String fullAddr = String.format("%s, %s, %s",
                     request.getStreetAndNumber(), request.getCommune(), request.getRegion());
             order.setShippingAddress(fullAddr);
-
             order.setCourier(request.getCourier());
         } else {
             order.setShippingAddress("Retiro en Tienda");
@@ -100,48 +99,76 @@ public class StorefrontService {
         order.setPaymentMethod(request.getPaymentMethod());
         order.setShippingMethod(request.getDeliveryMethod());
 
-        order.setStatus("PENDING"); // Estado inicial (Reserva)
-        // La reserva expira en X minutos (configurado en DB o 30 por defecto)
+        order.setStatus("PENDING");
         order.setExpiresAt(LocalDateTime.now().plusMinutes(config.getReservationMinutes() != null ? config.getReservationMinutes() : 30));
 
         BigDecimal totalOrder = BigDecimal.ZERO;
         List<WebOrderItem> orderItems = new ArrayList<>();
 
-        // 3. Procesar Items y STOCK
+        // 3. Procesar Items y STOCK (LÓGICA BLINDADA CONTRA NULLS)
         for (WebOrderItemRequest itemReq : request.getItems()) {
             Product product = productRepository.findById(itemReq.getProductId())
                     .orElseThrow(() -> new RuntimeException("Producto no encontrado: " + itemReq.getProductId()));
 
-            // Validar que el producto sea de este tenant
             if (!product.getTenantId().equals(config.getTenantId())) {
-                throw new RuntimeException("Producto inválido");
+                throw new RuntimeException("Producto inválido (Tenant mismatch)");
             }
 
-            // --- VALIDACIÓN DE STOCK CRÍTICA ---
             BigDecimal qty = new BigDecimal(itemReq.getQuantity());
-            if (product.getStockCurrent().compareTo(qty) < 0) {
-                throw new RuntimeException("Stock insuficiente para: " + product.getName());
+
+            // --- A. LÓGICA DE STOCK PARA PACKS (BUNDLE) ---
+            if ("BUNDLE".equals(product.getProductType())) {
+                // 1. Validar Parent (Solo si tiene stock fijo asignado)
+                if (product.getStockCurrent() != null) {
+                    if (product.getStockCurrent().compareTo(qty) < 0) {
+                        throw new RuntimeException("Stock insuficiente para Pack: " + product.getName());
+                    }
+                    product.setStockCurrent(product.getStockCurrent().subtract(qty));
+                    productRepository.save(product);
+                }
+
+                // 2. Validar y Descontar Hijos (Componentes)
+                if (product.getBundleItems() != null) {
+                    for (BundleItem bundleItem : product.getBundleItems()) {
+                        Product child = bundleItem.getComponentProduct();
+                        BigDecimal totalChildQty = bundleItem.getQuantity().multiply(qty);
+
+                        // Validar hijo (Asumimos que los hijos SI deben tener stock controlado, o ser también infinitos)
+                        if (child.getStockCurrent() != null) {
+                            if (child.getStockCurrent().compareTo(totalChildQty) < 0) {
+                                throw new RuntimeException("Stock insuficiente en componente: " + child.getName());
+                            }
+                            // Descontar hijo
+                            child.setStockCurrent(child.getStockCurrent().subtract(totalChildQty));
+                            productRepository.save(child);
+                        }
+                    }
+                }
+            }
+            // --- B. LÓGICA DE STOCK PARA PRODUCTO NORMAL ---
+            else {
+                if (product.getStockCurrent() != null) {
+                    if (product.getStockCurrent().compareTo(qty) < 0) {
+                        throw new RuntimeException("Stock insuficiente para: " + product.getName());
+                    }
+                    product.setStockCurrent(product.getStockCurrent().subtract(qty));
+                    productRepository.save(product);
+                }
+                // Si es NULL (infinito), pasa sin descontar nada.
             }
 
-            // --- DESCUENTO DE STOCK (RESERVA) ---
-            // Restamos ahora. Si el pedido expira, un cron job debería devolverlo (lo veremos luego)
-            product.setStockCurrent(product.getStockCurrent().subtract(qty));
-            productRepository.save(product);
-
-            // Crear Detalle
+            // Crear Detalle de Orden
             WebOrderItem detail = new WebOrderItem();
             detail.setWebOrder(order);
             detail.setProduct(product);
             detail.setQuantity(qty);
 
-            // Snapshot de precios (al momento de la compra)
             BigDecimal finalPrice = product.getPublicPrice() != null ? product.getPublicPrice() : calculatePriceWithTax(product);
             detail.setUnitPriceAtMoment(finalPrice);
             detail.setCostPriceAtMoment(product.getCostPrice());
             detail.setProductNameSnapshot(product.getName());
             detail.setSkuSnapshot(product.getSku());
 
-            // Subtotal línea
             BigDecimal subtotal = finalPrice.multiply(qty);
             detail.setSubtotal(subtotal);
 
