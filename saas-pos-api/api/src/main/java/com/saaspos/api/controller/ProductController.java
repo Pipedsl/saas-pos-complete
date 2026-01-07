@@ -55,6 +55,16 @@ public class ProductController {
         return ResponseEntity.ok(dtos);
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<List<ProductDto>> searchProducts(@RequestParam String q) {
+        UUID tenantId = getCurrentTenantId();
+        List<Product> products = productRepository.searchByTerm(tenantId, q);
+
+        // Convertimos a DTO para mostrar info linda en el front
+        List<ProductDto> dtos = products.stream().map(this::mapToDto).collect(Collectors.toList());
+        return ResponseEntity.ok(dtos);
+    }
+
     // POST: Crear nuevo producto (Con validación de Stock Pack)
     @PostMapping
     @Transactional
@@ -73,9 +83,20 @@ public class ProductController {
             return ResponseEntity.badRequest().body("El SKU ya existe.");
         }
 
+        String finalSku = dto.getSku();
+        if (finalSku == null || finalSku.trim().isEmpty()) {
+            // Generamos uno corto: GEN-173618293
+            finalSku = "GEN-" + System.currentTimeMillis();
+        }
+
+        // Validamos duplicados con el SKU final
+        if (productRepository.existsByTenantIdAndSku(tenantId, finalSku)) {
+            return ResponseEntity.badRequest().body("El SKU " + finalSku + " ya existe. Intenta otro.");
+        }
+
         Product product = new Product();
         product.setTenantId(tenantId);
-        product.setSku(dto.getSku());
+        product.setSku(finalSku);
         product.setName(dto.getName());
         product.setDescription(dto.getDescription());
         calculateProductPrices(product, dto);
@@ -203,6 +224,14 @@ public class ProductController {
         if (newSafe.compareTo(oldSafe) != 0) {
             BigDecimal diff = newSafe.subtract(oldSafe);
             createInventoryLog(product, currentUser, "MANUAL_ADJUST", diff, oldSafe, newSafe, "Ajuste manual desde Catálogo");
+        }
+
+        if (dto.getSku() != null && !dto.getSku().trim().isEmpty()) {
+            // Validar si cambió y si ya existe otro igual...
+            if (!product.getSku().equals(dto.getSku()) && productRepository.existsByTenantIdAndSku(tenantId, dto.getSku())) {
+                return ResponseEntity.badRequest().body("El SKU ya está en uso.");
+            }
+            product.setSku(dto.getSku());
         }
 
         // --- 2. ACTUALIZACIÓN DE CAMPOS BÁSICOS ---

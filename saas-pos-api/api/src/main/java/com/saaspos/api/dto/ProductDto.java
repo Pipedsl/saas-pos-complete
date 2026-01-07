@@ -15,7 +15,6 @@ import java.util.UUID;
 public class ProductDto {
     private UUID id;
 
-    @NotBlank(message = "El SKU es obligatorio")
     private String sku;
     @NotBlank(message = "El nombre es obligatorio")
     private String name;

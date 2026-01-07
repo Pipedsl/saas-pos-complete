@@ -39,15 +39,8 @@ export class ProductsService {
     }
 
     searchProducts(query: string): Observable<Product[]> {
-        // Obtenemos todo y filtramos en memoria (para catálogos < 1000 productos funciona bien)
-        return this.http.get<Product[]>(this.apiUrl).pipe(
-            map(products => products.filter(p =>
-                // SKU: Usamos startsWith para que sea exacto al inicio (ej: "PAN" muestra "PAN801")
-                p.sku.toLowerCase().startsWith(query.toLowerCase()) ||
-                // NOMBRE: Usamos includes para que sea flexible
-                p.name.toLowerCase().includes(query.toLowerCase())
-            ))
-        );
+        // CAMBIO: Ahora llamamos al backend que busca por SKU, Nombre y Categoría
+        return this.http.get<Product[]>(`${this.apiUrl}/search?q=${query}`);
     }
 
     getLowStockProducts(): Observable<Product[]> {

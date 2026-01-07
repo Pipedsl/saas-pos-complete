@@ -41,4 +41,17 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
     @Transactional
     @Query("UPDATE Product p SET p.isActive = true WHERE p.id = :id")
     void activateProduct(@Param("id") UUID id);
+
+    @Query("""
+        SELECT p FROM Product p
+        LEFT JOIN p.category c
+        WHERE p.tenantId = :tenantId
+        AND p.isActive = true
+        AND (
+            LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%'))
+            OR LOWER(p.sku) LIKE LOWER(CONCAT('%', :query, '%'))
+            OR LOWER(c.name) LIKE LOWER(CONCAT('%', :query, '%'))
+        )
+    """)
+    List<Product> searchByTerm(@Param("tenantId") UUID tenantId, @Param("query") String query);
 }

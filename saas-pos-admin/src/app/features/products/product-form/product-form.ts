@@ -85,7 +85,7 @@ export class ProductFormComponent implements OnInit {
     private cdr: ChangeDetectorRef
   ) {
     this.productForm = this.fb.group({
-      sku: ['', Validators.required],
+      sku: [''],
       name: ['', Validators.required],
       imageUrl: [''],
       isPublic: [true],
@@ -374,9 +374,24 @@ export class ProductFormComponent implements OnInit {
 
   filterChildProducts(event: any) {
     const query = event.query;
-    this.productsService.searchProducts(query).subscribe(data => {
-      // Filtrar para que no se pueda agregar el mismo pack a sí mismo (si fuera edición)
-      this.suggestedChildProducts = data.filter(p => p.id !== this.productId);
+
+    this.productsService.searchProducts(query).subscribe({
+      next: (data) => {
+        // 1. Filtramos para no auto-agregarse
+        const filtered = data.filter(p => p.id !== this.productId);
+
+        // 2. TRUCO CLAVE: Asignar una NUEVA referencia de array ([...filtered])
+        // Esto le avisa a PrimeNG que la data cambió sí o sí.
+        this.suggestedChildProducts = [...filtered];
+
+        // 3. Forzar la detección de cambios
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error(err);
+        this.suggestedChildProducts = []; // Limpiar en caso de error
+        this.cdr.detectChanges();
+      }
     });
   }
 
