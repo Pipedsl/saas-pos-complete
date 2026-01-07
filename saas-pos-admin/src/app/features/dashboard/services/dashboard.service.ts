@@ -10,6 +10,14 @@ export interface DashboardStats {
     totalProfitToday: number;
 }
 
+export interface ProductRanking {
+    productName: string;
+    sku: string;
+    categoryName: string;
+    totalQuantitySold: number;
+    totalRevenue: number;
+}
+
 @Injectable({
     providedIn: 'root'
 })
@@ -18,7 +26,29 @@ export class DashboardService {
 
     constructor(private http: HttpClient) { }
 
-    getStats(): Observable<DashboardStats> {
-        return this.http.get<DashboardStats>(`${this.apiUrl}/stats`);
+    getStats(startDate?: string, endDate?: string): Observable<DashboardStats> {
+        let url = `${this.apiUrl}/stats`;
+        if (startDate && endDate) {
+            url += `?startDate=${startDate}&endDate=${endDate}`;
+        }
+        return this.http.get<DashboardStats>(url);
+    }
+
+    // 1. Obtener detalle de ventas (Lista de Sales completa)
+    getSalesDetail(startDate: string, endDate: string): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/sales-detail?startDate=${startDate}&endDate=${endDate}`);
+    }
+
+    // 2. Obtener Ranking de Productos
+    getProductRanking(startDate: string, endDate: string, categoryId?: string, type: string = 'MOST_SOLD'): Observable<ProductRanking[]> {
+        let url = `${this.apiUrl}/product-ranking?startDate=${startDate}&endDate=${endDate}&type=${type}`;
+        if (categoryId) {
+            url += `&categoryId=${categoryId}`;
+        }
+        return this.http.get<ProductRanking[]>(url);
+    }
+
+    getChartData(startDate: string, endDate: string, groupBy: 'DAY' | 'MONTH'): Observable<any[]> {
+        return this.http.get<any[]>(`${this.apiUrl}/chart-data?startDate=${startDate}&endDate=${endDate}&groupBy=${groupBy}`);
     }
 }

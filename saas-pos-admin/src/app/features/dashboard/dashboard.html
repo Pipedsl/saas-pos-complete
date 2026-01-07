@@ -1,27 +1,45 @@
 <div class="p-4 lg:p-6 h-full overflow-y-auto">
-    <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl lg:text-3xl text-textmain font-bold">Resumen del Día</h2>
-        <span class="text-textsec text-sm">{{ stats.totalTransactionsToday }} transacciones hoy</span>
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+        <div>
+            <h2 class="text-2xl lg:text-3xl text-textmain font-bold">Resumen de Ventas</h2>
+            <span class="text-textsec text-sm">Mostrando datos de: <b>{{ selectedRangeLabel }}</b></span>
+        </div>
+
+        <div class="flex bg-cardbg rounded-lg p-1 border border-gray-700">
+            <button *ngFor="let r of ranges" (click)="setRange(r.value)"
+                class="px-4 py-2 text-sm rounded-md transition-all font-medium" [ngClass]="selectedRangeValue === r.value 
+                    ? 'bg-primary text-white shadow-md' 
+                    : 'text-textsec hover:text-textmain hover:bg-white/5'">
+                {{ r.label }}
+            </button>
+        </div>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
 
-        <div class="bg-cardbg p-6 rounded-xl border border-gray-700 shadow-lg relative overflow-hidden group">
+        <div (click)="openSalesDetail('SALES')"
+            class="bg-cardbg p-6 rounded-xl border border-gray-700 shadow-lg relative overflow-hidden group cursor-pointer hover:border-secondary transition-colors">
             <div
                 class="absolute right-0 top-0 w-24 h-24 bg-secondary/10 rounded-bl-full group-hover:bg-secondary/20 transition-all">
             </div>
-            <h3 class="text-textsec text-xs font-bold uppercase tracking-wider mb-1">Ventas Hoy</h3>
+            <h3 class="text-textsec text-xs font-bold uppercase tracking-wider mb-1">Ventas de: {{ selectedRangeLabel }}
+            </h3>
             <p class="text-4xl font-black text-secondary">
                 {{ stats.totalSalesToday | currency:'CLP':'symbol-narrow':'1.0-0' }}
             </p>
             <i class="pi pi-dollar absolute right-4 top-4 text-2xl text-secondary/50"></i>
+            <p class="text-[10px] text-textsec mt-2 flex items-center gap-1">
+                <i class="pi pi-eye"></i> Ver detalle
+            </p>
         </div>
 
-        <div class="bg-cardbg p-6 rounded-xl border border-gray-700 shadow-lg relative overflow-hidden group">
+        <div (click)="openProfitDetail()"
+            class="bg-cardbg p-6 rounded-xl border border-gray-700 shadow-lg relative overflow-hidden group cursor-pointer hover:border-yellow-500 transition-colors">
             <div
                 class="absolute right-0 top-0 w-24 h-24 bg-yellow-500/10 rounded-bl-full group-hover:bg-yellow-500/20 transition-all">
             </div>
-            <h3 class="text-textsec text-xs font-bold uppercase tracking-wider mb-1">Utilidad Neta (Aprox)</h3>
+            <h3 class="text-textsec text-xs font-bold uppercase tracking-wider mb-1">Utilidad Neta (Aprox) de: {{
+                selectedRangeLabel }}</h3>
             <p class="text-4xl font-black text-yellow-400">
                 {{ stats.totalProfitToday | currency:'CLP':'symbol-narrow':'1.0-0' }}
             </p>
@@ -46,23 +64,41 @@
             <i class="pi pi-exclamation-triangle absolute right-4 top-4 text-2xl text-red-500/50"></i>
         </div>
 
-        <div class="bg-cardbg p-6 rounded-xl border border-gray-700 shadow-lg relative overflow-hidden group">
+        <div (click)="openSalesDetail('TICKETS')"
+            class="bg-cardbg p-6 rounded-xl border border-gray-700 shadow-lg relative overflow-hidden group cursor-pointer hover:border-primary transition-colors">
             <div
                 class="absolute right-0 top-0 w-24 h-24 bg-primary/10 rounded-bl-full group-hover:bg-primary/20 transition-all">
             </div>
-            <h3 class="text-textsec text-xs font-bold uppercase tracking-wider mb-1">Tickets Emitidos</h3>
+            <h3 class="text-textsec text-xs font-bold uppercase tracking-wider mb-1">Tickets Emitidos de: {{
+                selectedRangeLabel }}</h3>
             <p class="text-4xl font-black text-primary">
                 #{{ stats.totalTransactionsToday }}
             </p>
             <i class="pi pi-receipt absolute right-4 top-4 text-2xl text-primary/50"></i>
+            <p class="text-[10px] text-textsec mt-2 flex items-center gap-1">
+                <i class="pi pi-list"></i> Ver lista
+            </p>
         </div>
 
     </div>
 
-    <div
-        class="mt-8 bg-cardbg rounded-xl border border-gray-200 dark:border-gray-800 p-8 text-center text-textsec border-dashed">
-        <i class="pi pi-chart-bar text-4xl mb-2"></i>
-        <p>Próximamente: Gráficos de ventas mensuales</p>
+    <div class="mt-8 bg-cardbg rounded-xl border border-gray-700 p-6 shadow-lg">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl font-bold text-textmain">Tendencia de Ventas</h3>
+            <p class="text-sm text-textsec">Periodo: {{ selectedRangeLabel }}</p>
+        </div>
+
+        <div *ngIf="chartData && selectedRangeValue !== 'TODAY'" class="h-[300px]">
+            <p-chart type="line" [data]="chartData" [options]="chartOptions" height="100%"></p-chart>
+        </div>
+
+        <div *ngIf="!chartData || selectedRangeValue === 'TODAY'"
+            class="h-[300px] flex flex-col items-center justify-center text-textsec border border-dashed border-gray-700 rounded-lg">
+            <i class="pi pi-chart-bar text-4xl mb-2 opacity-50"></i>
+            <p *ngIf="selectedRangeValue === 'TODAY'">El gráfico de tendencia está disponible para rangos de Semana, Mes
+                o Año.</p>
+            <p *ngIf="selectedRangeValue !== 'TODAY'">No hay datos suficientes para graficar en este periodo.</p>
+        </div>
     </div>
 
 </div>
@@ -72,16 +108,126 @@
     <p-table [value]="lowStockProducts" styleClass="p-datatable-sm">
         <ng-template pTemplate="header">
             <tr>
-                <th class="text-textsec">Producto</th>
-                <th class="text-textsec">Stock Actual</th>
-                <th class="text-textsec">Mínimo</th>
+                <th class="text-textsec bg-darkbg">Producto</th>
+                <th class="text-textsec bg-darkbg text-center">Stock Actual</th>
+                <th class="text-textsec bg-darkbg text-center">Mínimo</th>
             </tr>
         </ng-template>
         <ng-template pTemplate="body" let-p>
-            <tr class="text-textmain">
+            <tr class="text-textmain border-b border-gray-700">
                 <td>{{ p.name }}</td>
-                <td class="font-bold text-red-500">{{ p.stockCurrent }}</td>
-                <td>{{ p.stockMin }}</td>
+                <td class="font-bold text-red-500 text-center">{{ p.stockCurrent }}</td>
+                <td class="text-center">{{ p.stockMin }}</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</p-dialog>
+
+<p-dialog [header]="salesDetailTitle" [(visible)]="showSalesDetailDialog" [modal]="true" [style]="{width: '70vw'}"
+    styleClass="bg-cardbg text-textmain">
+
+    <div *ngIf="isLoadingDetails" class="p-4 text-center">
+        <i class="pi pi-spin pi-spinner text-3xl text-primary"></i>
+    </div>
+
+    <p-table *ngIf="!isLoadingDetails" [value]="salesDetailData" [paginator]="true" [rows]="5"
+        styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+            <tr>
+                <th class="text-textsec bg-darkbg">N° Ticket</th>
+                <th class="text-textsec bg-darkbg">Fecha | Hora</th>
+                <th class="text-textsec bg-darkbg text-right">Monto Total</th>
+                <th class="text-textsec bg-darkbg text-center">Estado</th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-sale>
+            <tr class="text-textmain border-b border-gray-700">
+                <td class="font-mono text-primary">{{ sale.saleNumber }}</td>
+                <td>{{ sale.createdAt | date:'dd/MM/yy HH:mm' }}</td>
+                <td class="text-right font-bold">{{ sale.totalAmount | currency:'CLP':'symbol-narrow':'1.0-0' }}</td>
+                <td class="text-center">
+                    <p-tag [value]="sale.status" [severity]="sale.status === 'COMPLETED' ? 'success' : 'warn'"></p-tag>
+                </td>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="4" class="text-center p-4 text-textsec">No hay movimientos hoy.</td>
+            </tr>
+        </ng-template>
+    </p-table>
+</p-dialog>
+
+<p-dialog header="Análisis de Productos" [(visible)]="showRankingDialog" [modal]="true" [style]="{width: '70vw'}"
+    styleClass="bg-cardbg text-textmain" [draggable]="false" [resizable]="false">
+
+    <div class="flex flex-col md:flex-row gap-4 mb-4 p-4 bg-darkbg rounded border border-gray-700">
+        <div class="flex flex-col gap-1 w-full md:w-1/3">
+            <label class="text-xs text-textsec uppercase font-bold">Tipo de Reporte</label>
+            <p-select [options]="rankingTypes" [(ngModel)]="selectedRankingType" (onChange)="loadRankingData()"
+                optionLabel="label" optionValue="value" styleClass="w-full bg-cardbg border-gray-600 text-textmain"
+                panelStyleClass="bg-cardbg text-textmain">
+            </p-select>
+        </div>
+
+        <div class="flex flex-col gap-1 w-full md:w-1/3">
+            <label class="text-xs text-textsec uppercase font-bold">Categoría</label>
+            <select [(ngModel)]="selectedCategoryId" (change)="loadRankingData()"
+                class="w-full p-2.5 rounded border border-gray-600 bg-cardbg text-textmain text-sm focus:border-primary focus:outline-none">
+                <option value="">Todas las Categorías</option>
+                <option *ngFor="let c of categories" [value]="c.id">{{ c.name }}</option>
+            </select>
+        </div>
+
+        <div class="flex flex-col gap-1 w-full md:w-1/3 justify-end pb-2 text-right">
+            <p class="text-xs text-textsec">Periodo Analizado</p>
+            <p class="font-bold text-primary">{{ selectedRangeLabel }}</p>
+        </div>
+    </div>
+
+    <div *ngIf="isLoadingDetails" class="p-8 text-center">
+        <i class="pi pi-spin pi-spinner text-4xl text-primary"></i>
+        <p class="text-textsec mt-2">Analizando datos...</p>
+    </div>
+
+    <p-table *ngIf="!isLoadingDetails" [value]="rankingData" [paginator]="true" [rows]="5" styleClass="p-datatable-sm">
+        <ng-template pTemplate="header">
+            <tr>
+                <th class="text-textsec bg-darkbg w-12 text-center">#</th>
+                <th class="text-textsec bg-darkbg">Producto</th>
+                <th class="text-textsec bg-darkbg">Categoría</th>
+                <th class="text-textsec bg-darkbg text-center">Unidades</th>
+                <th class="text-textsec bg-darkbg text-right">Ingresos Generados</th>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="body" let-item let-rowIndex="rowIndex">
+            <tr class="text-textmain border-b border-gray-700 hover:bg-white/5 transition-colors">
+                <td class="font-bold text-gray-500 text-center">{{ rowIndex + 1 }}</td>
+                <td>
+                    <div class="flex flex-col">
+                        <span class="font-bold text-white">{{ item.productName }}</span>
+                        <span class="text-xs text-textsec font-mono">{{ item.sku }}</span>
+                    </div>
+                </td>
+                <td>
+                    <span class="bg-primary/20 text-primary text-xs px-2 py-1 rounded">
+                        {{ item.categoryName || 'Sin Categoría' }}
+                    </span>
+                </td>
+                <td class="text-center font-bold text-xl" [class.text-red-400]="item.totalQuantitySold === 0">
+                    {{ item.totalQuantitySold }}
+                </td>
+                <td class="text-right font-mono text-gray-300">
+                    {{ item.totalRevenue | currency:'CLP':'symbol-narrow':'1.0-0' }}
+                </td>
+            </tr>
+        </ng-template>
+        <ng-template pTemplate="emptymessage">
+            <tr>
+                <td colspan="5" class="text-center p-8 text-textsec">
+                    <i class="pi pi-search text-2xl mb-2 block opacity-50"></i>
+                    No se encontraron productos con estos filtros en el periodo seleccionado.
+                </td>
             </tr>
         </ng-template>
     </p-table>

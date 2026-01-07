@@ -21,6 +21,8 @@ import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { FileUploadModule } from 'primeng/fileupload';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { TooltipModule } from 'primeng/tooltip';
+import { ChartModule } from 'primeng/chart';
+import { SelectModule } from "primeng/select";
 
 
 
@@ -29,9 +31,9 @@ import { TooltipModule } from 'primeng/tooltip';
 
 @NgModule({
 
-    imports: [ButtonModule, CardModule, InputTextModule, PasswordModule, TableModule, TagModule, InputNumberModule, TextareaModule, DialogModule, ToastModule, AutoCompleteModule, CheckboxModule, RadioButtonModule, TabsModule, ColorPickerModule, InputGroupModule, InputGroupAddonModule, FileUploadModule, MultiSelectModule, InputNumberModule, TooltipModule
+    imports: [ButtonModule, CardModule, InputTextModule, PasswordModule, TableModule, TagModule, InputNumberModule, TextareaModule, DialogModule, ToastModule, AutoCompleteModule, CheckboxModule, RadioButtonModule, TabsModule, ColorPickerModule, InputGroupModule, InputGroupAddonModule, FileUploadModule, MultiSelectModule, InputNumberModule, TooltipModule, ChartModule, SelectModule
     ],
-    exports: [ButtonModule, CardModule, InputTextModule, PasswordModule, TableModule, TagModule, InputNumberModule, TextareaModule, DialogModule, ToastModule, AutoCompleteModule, CheckboxModule, RadioButtonModule, TabsModule, ColorPickerModule, InputGroupModule, InputGroupAddonModule, FileUploadModule, MultiSelectModule, InputNumberModule, TooltipModule],
+    exports: [ButtonModule, CardModule, InputTextModule, PasswordModule, TableModule, TagModule, InputNumberModule, TextareaModule, DialogModule, ToastModule, AutoCompleteModule, CheckboxModule, RadioButtonModule, TabsModule, ColorPickerModule, InputGroupModule, InputGroupAddonModule, FileUploadModule, MultiSelectModule, InputNumberModule, TooltipModule, ChartModule, SelectModule],
     providers: [MessageService]
 
 })
