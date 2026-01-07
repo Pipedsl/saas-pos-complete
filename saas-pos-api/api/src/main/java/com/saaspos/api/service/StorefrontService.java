@@ -170,24 +170,32 @@ public class StorefrontService {
         dto.setDescription(p.getDescriptionWeb() != null ? p.getDescriptionWeb() : p.getDescription());
         dto.setImageUrl(p.getImageUrl());
 
-        // Lógica de Precio Público:
-        // Si tiene precio especial web, úsalo. Si no, calcula el precio normal con IVA.
+        // Lógica de Precio Público
         BigDecimal finalPrice;
         if (p.getPublicPrice() != null && p.getPublicPrice().compareTo(BigDecimal.ZERO) > 0) {
             finalPrice = p.getPublicPrice();
         } else {
-            // Precio Normal (Neto * 1.19)
             BigDecimal taxFactor = BigDecimal.ONE.add(p.getTaxPercent().divide(new BigDecimal("100")));
             finalPrice = p.getPriceNeto().multiply(taxFactor);
         }
         dto.setPrice(finalPrice.setScale(0, RoundingMode.HALF_UP));
 
-        // --- CAMBIO CLAVE AQUÍ ---
-        // En lugar de dto.setStock(p.getStockCurrent());
-        // Usamos el método inteligente:
-        dto.setStockCurrent(p.getEffectiveStock());
-        // -------------------------
-        dto.setLowStock(p.getStockCurrent().compareTo(p.getStockMin()) <= 0);
+        // --- FIX DE STOCK (BLINDADO CONTRA NULLS) ---
+
+        // 1. Obtenemos el stock efectivo (Calculado o Directo)
+        BigDecimal effectiveStock = p.getEffectiveStock();
+        dto.setStockCurrent(effectiveStock);
+
+        // 2. Calculamos LowStock de forma segura
+        // Si el stock efectivo es NULL (Infinito), NUNCA es bajo stock.
+        if (effectiveStock == null) {
+            dto.setLowStock(false);
+        } else {
+            // Nos aseguramos de tener un mínimo para comparar (default 0)
+            BigDecimal min = p.getStockMin() != null ? p.getStockMin() : BigDecimal.ZERO;
+            dto.setLowStock(effectiveStock.compareTo(min) <= 0);
+        }
+        // --------------------------------------------
 
         if (p.getCategory() != null) {
             dto.setCategoryName(p.getCategory().getName());
