@@ -14,6 +14,8 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.LocalDateTime;
+import java.time.ZoneId; // <--- Importante
+import java.time.ZonedDateTime; // <--- Importante
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
@@ -31,7 +33,6 @@ public class ReportController {
     }
 
     // 1. Endpoint para la Tabla del Dashboard (JSON)
-    // Permite al frontend "ver" los datos antes de descargar
     @GetMapping("/inventory-logs")
     public ResponseEntity<List<InventoryLog>> getInventoryLogsJson(
             @RequestParam(required = false) String start,
@@ -40,9 +41,9 @@ public class ReportController {
 
         UUID tenantId = getCurrentTenantId();
 
-        // Lógica de fechas (si no envían nada, mostramos el mes actual)
-        LocalDateTime startDate = (start != null) ? LocalDateTime.parse(start) : LocalDateTime.now().withDayOfMonth(1).toLocalDate().atStartOfDay();
-        LocalDateTime endDate = (end != null) ? LocalDateTime.parse(end) : LocalDateTime.now();
+        // FIX: Usamos el método helper para parsear fechas con 'Z'
+        LocalDateTime startDate = parseDate(start, true);
+        LocalDateTime endDate = parseDate(end, false);
 
         List<InventoryLog> logs;
         if (categoryId != null) {
@@ -64,8 +65,9 @@ public class ReportController {
 
         UUID tenantId = getCurrentTenantId();
 
-        LocalDateTime startDate = (start != null) ? LocalDateTime.parse(start) : LocalDateTime.now().withDayOfMonth(1).toLocalDate().atStartOfDay();
-        LocalDateTime endDate = (end != null) ? LocalDateTime.parse(end) : LocalDateTime.now();
+        // FIX: Usamos el mismo helper aquí
+        LocalDateTime startDate = parseDate(start, true);
+        LocalDateTime endDate = parseDate(end, false);
 
         // Buscar Datos
         List<InventoryLog> logs;
@@ -102,6 +104,30 @@ public class ReportController {
                             escape(log.getReason()) + "," +
                             origen
             );
+        }
+    }
+
+    // --- NUEVO HELPER PARA PARSEAR FECHAS DE FORMA SEGURA ---
+    private LocalDateTime parseDate(String dateStr, boolean isStart) {
+        ZoneId chileZone = ZoneId.of("America/Santiago");
+
+        if (dateStr == null) {
+            // Default: Principio o fin del mes actual en Chile
+            LocalDateTime now = LocalDateTime.now(chileZone);
+            return isStart
+                    ? now.withDayOfMonth(1).toLocalDate().atStartOfDay()
+                    : now;
+        }
+
+        try {
+            // Intento 1: Formato UTC con 'Z' (El que manda Angular: 2026-01-06T03:00:00.000Z)
+            // Lo convertimos a la hora de Chile
+            return ZonedDateTime.parse(dateStr, DateTimeFormatter.ISO_DATE_TIME)
+                    .withZoneSameInstant(chileZone)
+                    .toLocalDateTime();
+        } catch (Exception e) {
+            // Intento 2: Fallback por si llega sin zona (2026-01-06T00:00:00)
+            return LocalDateTime.parse(dateStr);
         }
     }
 
