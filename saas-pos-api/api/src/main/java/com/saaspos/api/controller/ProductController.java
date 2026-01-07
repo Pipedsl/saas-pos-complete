@@ -296,11 +296,16 @@ public class ProductController {
     }
 
     @GetMapping("/low-stock")
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true) // Mantenemos esto para evitar el error Lazy
     public ResponseEntity<List<ProductDto>> getLowStockProducts() {
         UUID tenantId = getCurrentTenantId();
         List<Product> all = productRepository.findByTenantId(tenantId);
-        return ResponseEntity.ok(all.stream().filter(p -> p.getStockCurrent().compareTo(p.getStockMin()) <= 0).map(this::mapToDto).collect(Collectors.toList()));
+
+        return ResponseEntity.ok(all.stream()
+                // FIX: Verificamos que stockCurrent NO sea null antes de comparar
+                .filter(p -> p.getStockCurrent() != null && p.getStockCurrent().compareTo(p.getStockMin()) <= 0)
+                .map(this::mapToDto)
+                .collect(Collectors.toList()));
     }
 
     private void calculateProductPrices(Product product, ProductDto dto) {
